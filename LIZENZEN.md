@@ -1,0 +1,65 @@
+# Quellen und Lizenzen
+
+## Ortsdaten und Datenbank
+
+Diese Veröffentlichung enthält Informationen aus OpenStreetMap.
+
+**Attribution:** Contains information from OpenStreetMap, which is made available at [openstreetmap.org](https://www.openstreetmap.org/copyright) under the [Open Database License 1.0](https://opendatacommons.org/licenses/odbl/1-0/).
+
+Die als `steder_offentlig_2000.csv` und `steder_offentlig_2000.geojson` veröffentlichte abgeleitete Ortsdatenbank wird unter ODbL 1.0 bereitgestellt. Die Auswahl, Kategorisierung und Kurzbeschreibungen sind Teil dieser Veröffentlichung.
+
+## Kartenhintergrund
+
+Kartenkacheln werden vom Standarddienst von OpenStreetMap geladen. Die Anwendung betreibt kein eigenes Offline-, Vorrats- oder Prefetch-Caching der Kartenkacheln. Es gelten die Nutzungsbedingungen des jeweiligen Kacheldienstes.
+
+## Offizielle Turrouten
+
+Die optionalen Ebenen für Fuß-, Rad- und Skirouten sowie Routeninformationspunkte werden über den WMS-Dienst der nationalen Turrutebase von Kartverket geladen:
+
+https://wms.geonorge.no/skwms1/wms.friluftsruter2
+
+Informationen zum Datensatz:
+
+https://www.kartverket.no/en/api-and-data/friluftsliv
+
+Die Turrutebase kann regional unterschiedlich vollständig sein. Die Kartenebene stellt keine Sicherheitsbewertung dar.
+
+## Camper-Infrastruktur
+
+Die getrennte Camper-Ebene enthält 1.500 offene OSM-Punkte zu Stellplätzen, Campingplätzen, Trinkwasser, Toiletten und Fähranlegern. Sie wird als `camper_layers.geojson` unter ODbL 1.0 bereitgestellt. Angaben können unvollständig oder veraltet sein und müssen vor Ort geprüft werden.
+
+## Qualitätsanzeige
+
+Die Qualitätsstufe bewertet die Dokumentation im Datensatz, nicht die Sicherheit oder tatsächliche Befahrbarkeit. Berücksichtigt werden unter anderem exakte Objektquelle, Bildlizenz, Zugangsangabe, Webseite, Öffnungszeiten und Aktualisierungsmerkmale.
+
+## Bilder
+
+Direkt eingeblendete Bilder stammen ausschließlich von Wikimedia Commons. Für jedes Bild zeigt die Detailansicht:
+
+- Bildbeschreibung beziehungsweise Titel,
+- Urheber oder Fotograf,
+- konkrete Lizenz,
+- Link zur Lizenz,
+- Link zur Originaldatei.
+
+Als Umgebungsfoto bezeichnete Bilder sind georeferenziert und liegen höchstens etwa 1,2 Kilometer vom Kartenpunkt entfernt. Sie zeigen nicht zwingend exakt das beschriebene Motiv.
+
+Bilder ohne eindeutig ermittelte freie Lizenz werden nicht direkt angezeigt.
+
+## UT.no, HANEN und andere Anbieter
+
+Diese öffentliche Ausgabe kopiert keine Bilder oder Originaltexte von UT.no, HANEN oder anderen Anbieterwebseiten. Solche Seiten werden gegebenenfalls lediglich als weiterführende Recherchelinks geöffnet.
+
+## Routenplanung
+
+Die freiwillig ausgelöste Routenplanung verwendet Nominatim zur Ortssuche und OSRM zur Routenberechnung. Start und Ziel werden direkt vom Browser an diese Dienste übertragen. Es werden keine Routen auf einem eigenen Server gespeichert. Es gelten zusätzlich die Nutzungsbedingungen der jeweiligen Dienste.
+
+## Datenschutz
+
+Beim Laden von OpenStreetMap-Kartenkacheln oder Wikimedia-Commons-Bildern stellt der Browser direkte Verbindungen zu diesen externen Diensten her. Standortdaten der Umkreissuche werden ausschließlich im Browser verarbeitet und von dieser Anwendung nicht an einen eigenen Server übertragen.
+
+## Kontakt
+
+Fehler, Rechtehinweise und Löschanfragen können über die Issues des Repositorys gemeldet werden:
+
+https://github.com/caze7/Norwy-mapi/issues
