@@ -1,7 +1,7 @@
 {
-  "name": "Steder i Norge – Route & Camper",
+  "name": "Steder i Norge – bereinigte Route & Camper", 
   "short_name": "Steder",
-  "description": "Minimalistische Norwegenkarte mit Stopps entlang der Route und Camper-Versorgung",
+  "description": "1.397 eindeutige Norwegen-Orte mit Route, Qualitätsangaben und Camper-Versorgung",
   "id": "./",
   "start_url": "./",
   "scope": "./",

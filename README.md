@@ -1,72 +1,133 @@
-# Steder i Norge – fokussierte Version 22
+# Steder i Norge – Audit-Version 23
 
-Diese Version ergänzt nur wenige, klar abgegrenzte Funktionen und hält die Oberfläche minimalistisch.
+Diese Version behebt die bei der externen Prüfung genannten Auslieferungs-, Daten- und Barrierefreiheitsprobleme.
 
-## 1. Orte entlang einer Fahrstrecke
+## Datenbereinigung
 
-Im bestehenden Bereich „Route“ können Start und Ziel eingegeben werden. Die Karte:
+- Ausgangsdaten: 2.000 Datensätze
+- zunächst unterschiedliche exakte Koordinaten: 1.411
+- zusammengeführte Datensätze an identischen Koordinaten: 589
+- zusätzlich zusammengeführte offensichtliche Nahdubletten: 12
+- insgesamt entfernte Dubletten: 601
+- zusätzlich entfernte offensichtlich fehlerhafte Einträge: 2
+- Ergebnis: **1.397 eindeutige Hauptorte und 1.397 eindeutige Koordinaten**
+- alte Namen und Sprachvarianten bleiben im Feld `aliases` erhalten
+- `merged_records` dokumentiert die Zahl zusammengeführter Datensätze
 
-- sucht beide Orte in Norwegen,
-- berechnet eine Fahrstrecke,
-- zeigt Distanz und ungefähre Fahrzeit,
-- findet hochwertige Orte in 5, 15 oder 30 Kilometern Entfernung zur Strecke,
-- verteilt Empfehlungen über acht Streckenabschnitte,
-- begrenzt gleiche Kategorien pro Abschnitt,
-- zeigt passende Stellplätze, Campingplätze, Trinkwasser und Toiletten entlang der Route,
-- übernimmt persönliche Stopps weiterhin nach Google Maps.
+### Einheitliche Taxonomie
 
-Die Ortssuche verwendet Nominatim, die Routenberechnung OSRM. Die Daten werden direkt vom Browser an diese Dienste gesendet und nicht auf einem eigenen Server gespeichert.
+Intern werden ausschließlich stabile Schlüssel verwendet, beispielsweise:
 
-## 2. Camper-Versorgung
+- `waterfall`
+- `viewpoint`
+- `lake`
+- `mountain_hike`
+- `beach`
+- `lighthouse`
+- `glacier`
+- `geology`
+- `bakery`
+- `cafe`
 
-Die bestehende Camper-Ebene wurde nicht weiter aufgebläht. Vorhandene Angaben werden klarer angezeigt:
+Die deutsche Anzeige steht getrennt in `category_de`. Bekanntheit verwendet nur:
 
-- Öffnungszeiten, falls eingetragen
-- Gebühr
-- Barrierefreiheit
-- Zugang
-- Webseite
-- Qualitätsstufe
+- `highlight`
+- `local_tip`
+- `discovery`
 
-Nicht vorhandene Öffnungszeiten werden ausdrücklich als „nicht eingetragen“ bezeichnet und nicht geschätzt.
+## Vollständiges Veröffentlichungspaket
 
-## 3. Ähnliche Orte
+Das ZIP enthält sämtliche benötigten Dateien. Die Anwendung prüft fehlende Hauptdaten und Camper-Daten verständlich.
 
-In jeder Ortsdetailansicht erscheinen drei ähnliche Empfehlungen. Sie basieren ausschließlich auf:
+Wichtige Laufzeitdateien:
 
-- gleicher Kategorie,
-- Datenqualität,
-- vorhandenem Bild,
-- Entfernung.
+```text
+index.html
+app.js
+app.css
+a11y-overrides.css
+leaflet.js
+leaflet.markercluster.js
+places-data.js
+camper_layers.js
+manifest.webmanifest
+service-worker.js
+```
 
-Es findet kein Nutzertracking und keine serverseitige Profilbildung statt.
+Daten-Downloads:
+
+```text
+steder_v23_1397.csv
+steder_v23_1397.geojson
+camper_layers.geojson
+```
+
+## Barrierefreiheit
+
+- `maximum-scale=1` entfernt
+- größere Grund- und Metadatenschriften
+- mindestens 44 Pixel hohe Touch-Ziele
+- sichtbare Fokusmarkierung
+- echtes Label für die Suche
+- Sheet-Handle als Button
+- Dialogrollen und `aria-modal`
+- Fokus beim Öffnen und Schließen
+- Escape zum Schließen
+- Fokus bleibt innerhalb geöffneter Dialoge
+- `aria-expanded` an Ebenen- und Quellenbuttons
+- reduzierte Animationen bei `prefers-reduced-motion`
+
+## Fehlerbehandlung
+
+- globale Laufzeitfehler
+- `unhandledrejection`
+- explizite Prüfung der Ortsdaten
+- optionale Camper-Ebene fällt kontrolliert aus
+- Netzwerk-Timeouts für Nominatim und OSRM
+- verständliche Fehlermeldungen für Ortssuche und Routing
+- maximal 30 zwischengespeicherte, identische Ortsanfragen
+- Kartverket-WMS-Fehler werden als Hinweis angezeigt
+- Service-Worker-Fehler werden gemeldet
+
+## Sicherheit und Wartbarkeit
+
+- externe Links mit `rel="noopener noreferrer"`
+- Content Security Policy
+- dynamische Ortsdaten werden vor HTML-Ausgabe maskiert
+- unminifizierte Quelldateien unter `src/`
+- SEO-Beschreibung, Canonical URL und Open-Graph-Metadaten
+- Apple-Touch-Icon
+
+## Offline-Verhalten
+
+Offline verfügbar:
+
+- App-Oberfläche
+- 1.397 Ortsdatensätze
+- Favoriten und persönliche Stopps
+- Camper-Datensätze
+
+Internet erforderlich:
+
+- Kartenhintergrund
+- Bilder, die noch nicht im normalen Browsercache liegen
+- Ortssuche
+- Routenberechnung
+- Kartverket-Routenebenen
+
+Es findet kein eigenes Offline-Caching externer OSM-Kartenkacheln statt.
 
 ## Weiterhin enthalten
 
-- 2.000 Hauptorte
 - 1.500 Camper- und Versorgungspunkte
 - Kartverket-Ebenen für Fuß-, Rad- und Skirouten
 - Qualitätsstufen A, B und C
-- 329 frei lizenzierte Commons-Bilder
-- vollständige Lizenzinformationen
-- CSV- und GeoJSON-Downloads
+- lizenzierte Commons-Bilder mit vollständigen Credits
+- Fahrstreckenplanung mit räumlich verteilten Stopps
+- ähnliche Orte in der Detailansicht
 
-## Tests
+## Veröffentlichung
 
-- Android Pixel 7: bestanden
-- Desktop 1440 × 900: bestanden
-- Route Oslo–Bergen: bestanden
-- Nominatim-Ortssuche: bestanden
-- OSRM-Routenberechnung: bestanden
-- 31 räumlich verteilte Vorschläge auf der Teststrecke
-- 19 verschiedene Kategorien auf der Teststrecke
-- Camper-Versorgung im Routenkorridor: bestanden
-- ähnliche Orte: bestanden
-- Öffnungszeitenanzeige: bestanden
-- keine JavaScript-Fehler
+Alle Dateien aus dem ZIP direkt ins Hauptverzeichnis des Repositorys laden und vorhandene Dateien ersetzen. Danach öffnen:
 
-## GitHub Pages
-
-Alle Dateien direkt ins Hauptverzeichnis laden und vorhandene Dateien ersetzen. Danach öffnen:
-
-`https://caze7.github.io/Norwy-mapi/?v=22`
+`https://caze7.github.io/Norwy-mapi/?v=23`
