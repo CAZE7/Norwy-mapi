@@ -1,0 +1,5 @@
+const V='norway-mobile-v1';
+const APP=['./','./index.html','./manifest.webmanifest','./assets/leaflet.css','./assets/leaflet.js','./assets/MarkerCluster.css','./assets/MarkerCluster.Default.css','./assets/leaflet.markercluster.js','./assets/icon-192.png','./assets/icon-512.png'];
+self.addEventListener('install',e=>e.waitUntil(caches.open(V).then(c=>c.addAll(APP)).then(()=>self.skipWaiting())));
+self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(a=>Promise.all(a.filter(x=>x!==V).map(x=>caches.delete(x)))).then(()=>self.clients.claim())));
+self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;const u=new URL(e.request.url);if(u.origin===location.origin){e.respondWith(caches.match(e.request).then(x=>x||fetch(e.request).then(r=>{caches.open(V).then(c=>c.put(e.request,r.clone()));return r})));return}if(/tile\.openstreetmap|upload\.wikimedia|cloudinary/.test(u.hostname)){e.respondWith(caches.match(e.request).then(x=>x||fetch(e.request,{mode:'no-cors'}).then(r=>{caches.open(V).then(c=>c.put(e.request,r.clone()));return r}).catch(()=>x)))}});
