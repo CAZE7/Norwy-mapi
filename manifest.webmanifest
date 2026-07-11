@@ -1,14 +1,14 @@
 {
-  "name": "Norwegen Entdecker – 1100 Orte",
-  "short_name": "Norwegen",
-  "description": "Mobile Entdeckerkarte mit Highlights, Geheimtipps und Tourenplanung",
+  "name": "Steder i Norge – 1500 Orte",
+  "short_name": "Steder",
+  "description": "Eine redaktionelle Entdeckerkarte für ganz Norwegen",
   "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "orientation": "portrait-primary",
-  "background_color": "#dce6df",
-  "theme_color": "#173f29",
+  "orientation": "any",
+  "background_color": "#f4f1ea",
+  "theme_color": "#1d2822",
   "icons": [
     {"src":"icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
     {"src":"icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
