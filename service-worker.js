@@ -1,5 +1,56 @@
-const V='norway-mobile-v1';
-const APP=['./','./index.html','./manifest.webmanifest','./assets/leaflet.css','./assets/leaflet.js','./assets/MarkerCluster.css','./assets/MarkerCluster.Default.css','./assets/leaflet.markercluster.js','./assets/icon-192.png','./assets/icon-512.png'];
-self.addEventListener('install',e=>e.waitUntil(caches.open(V).then(c=>c.addAll(APP)).then(()=>self.skipWaiting())));
-self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(a=>Promise.all(a.filter(x=>x!==V).map(x=>caches.delete(x)))).then(()=>self.clients.claim())));
-self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;const u=new URL(e.request.url);if(u.origin===location.origin){e.respondWith(caches.match(e.request).then(x=>x||fetch(e.request).then(r=>{caches.open(V).then(c=>c.put(e.request,r.clone()));return r})));return}if(/tile\.openstreetmap|upload\.wikimedia|cloudinary/.test(u.hostname)){e.respondWith(caches.match(e.request).then(x=>x||fetch(e.request,{mode:'no-cors'}).then(r=>{caches.open(V).then(c=>c.put(e.request,r.clone()));return r}).catch(()=>x)))}});
+const CACHE = 'norwegen-mobile-v3';
+const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './assets/icon-192.png', './assets/icon-512.png'];
+
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE)
+      .then(cache => cache.addAll(APP_SHELL))
+      .then(() => self.skipWaiting())
+  );
+});
+
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key))))
+      .then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener('fetch', event => {
+  if (event.request.method !== 'GET') return;
+  const url = new URL(event.request.url);
+
+  if (url.origin === self.location.origin) {
+    if (event.request.mode === 'navigate') {
+      event.respondWith(
+        fetch(event.request).then(response => {
+          if (response.ok) caches.open(CACHE).then(cache => cache.put('./index.html', response.clone()));
+          return response;
+        }).catch(() => caches.match('./index.html'))
+      );
+      return;
+    }
+    event.respondWith(
+      caches.match(event.request).then(cached =>
+        cached || fetch(event.request).then(response => {
+          if (response.ok) caches.open(CACHE).then(cache => cache.put(event.request, response.clone()));
+          return response;
+        })
+      )
+    );
+    return;
+  }
+
+  if (/tile\.openstreetmap|upload\.wikimedia|cloudinary/.test(url.hostname)) {
+    event.respondWith(
+      caches.match(event.request).then(cached =>
+        cached || fetch(event.request, { mode: 'no-cors' }).then(response => {
+          const copy = response.clone();
+          caches.open(CACHE).then(cache => cache.put(event.request, copy));
+          return response;
+        }).catch(() => cached)
+      )
+    );
+  }
+});

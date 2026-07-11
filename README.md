@@ -1,43 +1,60 @@
-# Norwegen Entdecker – Android-PWA
+# GitHub-Pages-Version – geprüft
 
-Diese Version wurde speziell für Smartphones und eine Bedienung mit einer Hand gestaltet.
+Diese Version ist für GitHub Pages vorbereitet. Leaflet und die Marker-Gruppierung sind vollständig in `index.html` eingebettet, sodass keine JavaScript-Dateien fehlen können.
 
-## Mobile Bedienung
+## Wichtig: richtige Ordnerstruktur
 
-- Vollbildkarte als Hauptansicht
-- hochziehbare Ergebnisliste
-- große Standort- und Geheimtipp-Schaltflächen
-- untere Navigation für Karte, Nähe, Favoriten und Tour
-- bildschirmfüllende Detailansicht nach Antippen eines Pins
-- Navigation direkt in Google Maps
-- Favoriten und Tourstopps werden lokal gespeichert
-- Übergabe von bis zu zehn Tourstopps an Google Maps
+Im Stammverzeichnis des GitHub-Repositories müssen direkt diese Dateien liegen:
 
-## Direkt auf dem Handy öffnen
+```text
+index.html
+manifest.webmanifest
+service-worker.js
+.nojekyll
+assets/
+  icon-192.png
+  icon-512.png
+```
 
-Für die Nutzung ohne Installation kann `norwegen_mobile_1100_standalone.html` auf das Android-Handy kopiert und in Chrome geöffnet werden. Karten und externe Fotos benötigen Internet.
+**Nicht korrekt** wäre:
 
-## Als App auf Android installieren
+```text
+mein-repository/
+  github_pages_norwegen_app/
+    index.html
+```
 
-Eine PWA muss über eine HTTPS-Adresse bereitgestellt werden. Die Dateien aus diesem Ordner unverändert auf einen HTTPS-Webspace hochladen, beispielsweise über GitHub Pages, Netlify oder Cloudflare Pages.
+Wenn `index.html` nur in einem Unterordner liegt, zeigt die Hauptadresse der GitHub Page keine App an.
 
-Danach:
+## Veröffentlichung
 
-1. Die HTTPS-Adresse in Chrome auf Android öffnen.
-2. Auf **„＋“** oben rechts oder **„App installieren“** tippen.
-3. Falls keine Schaltfläche erscheint: Chrome-Menü öffnen und **„App installieren“** beziehungsweise **„Zum Startbildschirm hinzufügen“** wählen.
-4. Danach erscheint Norwegen Entdecker wie eine normale App mit eigenem Symbol auf dem Startbildschirm.
+1. Neues GitHub-Repository erstellen.
+2. Den Inhalt dieses Ordners hochladen – nicht den übergeordneten Ordner selbst.
+3. In GitHub **Settings → Pages** öffnen.
+4. Unter **Build and deployment** „Deploy from a branch“ auswählen.
+5. Branch `main` und Ordner `/(root)` wählen.
+6. Speichern und einige Minuten warten.
+7. Die von GitHub angezeigte HTTPS-Adresse öffnen.
 
-## Offline
+## Falls weiterhin eine weiße alte Seite erscheint
 
-Nach der ersten vollständigen Online-Nutzung werden App-Oberfläche und Daten lokal gespeichert. Bereits betrachtete Kartenbereiche und Fotos werden nach Möglichkeit ebenfalls zwischengespeichert. Noch nie geladene Kartenkacheln und externe Bilder benötigen weiterhin Internet.
+Wahrscheinlich kontrolliert noch ein alter Service Worker die Seite:
 
-## Enthalten
+1. Die zuvor installierte Version der App vom Handy entfernen.
+2. In Chrome die GitHub-Pages-Adresse öffnen.
+3. Chrome → Website-Einstellungen → Gespeicherte Daten löschen.
+4. Seite zweimal neu laden oder die Adresse einmal mit `?v=3` öffnen.
+5. Anschließend erneut „App installieren“ wählen.
 
-- 1.100 Pins bis zur Höhe Trondheim
-- 444 direkt zugeordnete Bilder
-- bekannte Highlights und norwegisch recherchierte Geheimtipps
-- Umkreissuche bis 50 Kilometer in der mobilen Ansicht
-- Tourenplanung, Favoriten und Zufallsentdeckung
+Der neue Service Worker verwendet für Seitenaufrufe bewusst zuerst das Netzwerk, damit fehlerhafte alte Versionen nicht dauerhaft aus dem Cache geladen werden.
 
-Stand: 11. Juli 2026.
+## Geprüft
+
+- `index.html`: syntaktisch gültiges JavaScript
+- alle lokalen Referenzen vorhanden
+- Manifest: gültiges JSON
+- Service Worker: gültiges JavaScript
+- Testserver: alle fünf benötigten Dateien liefern HTTP 200
+- keine externen JavaScript- oder CSS-Abhängigkeiten
+
+Kartenkacheln und Bilder werden weiterhin online von OpenStreetMap beziehungsweise den jeweiligen Bildquellen geladen.
