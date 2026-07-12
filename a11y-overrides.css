@@ -1,10 +1,5 @@
-{
-  "private": true,
-  "scripts": {
-    "test": "playwright test browser_audit.spec.js --reporter=line --workers=1"
-  },
-  "devDependencies": {
-    "@axe-core/playwright": "4.10.2",
-    "@playwright/test": "1.52.0"
-  }
-}
+node_modules/
+test-results/
+playwright-report/
+.DS_Store
+*.log

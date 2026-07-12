@@ -1,34 +1,46 @@
-const { test, expect, devices } = require('@playwright/test');
-const { AxeBuilder } = require('@axe-core/playwright');
-const base = process.env.BASE_URL || 'http://127.0.0.1:8000/';
-
-test.use({ ...devices['Pixel 7'], geolocation: { latitude: 60, longitude: 9 }, permissions: ['geolocation'] });
-
-test('loads unique data and has no serious accessibility violations', async ({ page }) => {
-  const errors = [];
-  page.on('pageerror', error => errors.push(String(error)));
-  await page.goto(base, { waitUntil: 'networkidle' });
-  const audit = await page.evaluate(async () => ({
-    places: PLACES.length,
-    coordinates: new Set(PLACES.map(x => `${x.lat},${x.lon}`)).size,
-    camper: CAMPER_DATA.length,
-    worker: !!(await navigator.serviceWorker.ready).active
-  }));
-  expect(audit).toEqual({ places: 1397, coordinates: 1397, camper: 1500, worker: true });
-  const axe = await new AxeBuilder({ page }).analyze();
-  expect(axe.violations).toEqual([]);
-  expect(errors).toEqual([]);
-});
-
-test('route planner and dialogs work', async ({ page }) => {
-  await page.goto(base, { waitUntil: 'networkidle' });
-  await page.locator('.nav button[data-view="route"]').click();
-  await page.fill('#tripFrom', 'Oslo');
-  await page.fill('#tripTo', 'Bergen');
-  await page.getByRole('button', { name: 'Stopps finden' }).click();
-  await expect(page.locator('#tripStatus')).toContainText('km', { timeout: 40000 });
-  await page.locator('#legalButton').click();
-  await expect(page.locator('#legal')).toHaveClass(/open/);
-  await page.keyboard.press('Escape');
-  await expect(page.locator('#legal')).not.toHaveClass(/open/);
-});
+#!/usr/bin/env python3
+import csv, json, pathlib, re, sys
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+required = [
+    'index.html','app.js','app.css','a11y-overrides.css','leaflet.js',
+    'leaflet.markercluster.js','places-data.js','camper_layers.js',
+    'manifest.webmanifest','service-worker.js','package.json','TESTING.md','steder_v23_1397.csv',
+    'steder_v23_1397.geojson','camper_layers.geojson'
+]
+missing = [name for name in required if not (ROOT/name).exists()]
+assert not missing, f'Missing files: {missing}'
+rows = list(csv.DictReader(open(ROOT/'steder_v23_1397.csv', encoding='utf-8-sig')))
+assert len(rows) == 1397
+coords = {(r['latitude'], r['longitude']) for r in rows}
+names = {r['name'].casefold() for r in rows}
+assert len(coords) == len(rows), 'Duplicate coordinates remain'
+assert len(names) == len(rows), 'Duplicate names remain'
+assert all(re.fullmatch(r'[a-z_]+', r['category_id']) for r in rows)
+assert all(r['fame_id'] in {'highlight','local_tip','discovery'} for r in rows)
+main_geo = json.load(open(ROOT/'steder_v23_1397.geojson'))
+camper_geo = json.load(open(ROOT/'camper_layers.geojson'))
+assert len(main_geo['features']) == 1397
+assert len(camper_geo['features']) == 1500
+html = (ROOT/'index.html').read_text()
+assert 'maximum-scale' not in html
+assert 'Content-Security-Policy' in html
+assert 'label class="visuallyHidden" for="search"' in html
+assert 'role="dialog"' in html
+assert 'unhandledrejection' in html
+assert 'steder_v23_1397.geojson' in html
+assert 'id="filterPanel"' in html
+assert 'data-category-filter="waterfall"' in html
+assert 'aria-live="polite"' in html
+sw = (ROOT/'service-worker.js').read_text()
+assert 'tile.openstreetmap' not in sw
+assert 'upload.wikimedia' not in sw
+json.load(open(ROOT/'manifest.webmanifest'))
+package = json.load(open(ROOT/'package.json'))
+assert package['scripts']['test']
+assert (ROOT/'app.js').read_text().lstrip().startswith('const DATA=')
+assert (ROOT/'app.css').read_text().lstrip().startswith(':root')
+assert (ROOT/'a11y-overrides.css').read_text().lstrip().startswith('/* Accessibility')
+assert (ROOT/'src/app.source.js').read_text().lstrip().startswith('const DATA')
+assert (ROOT/'src/index.source.html').read_text().lstrip().startswith('<!doctype html>')
+assert not (ROOT/'tests/browser_audit.spec.js').read_text().lstrip().startswith('#')
+print('PASS: structure, 1397 unique places, taxonomy, GeoJSON, search/filter hooks, accessibility and service worker')

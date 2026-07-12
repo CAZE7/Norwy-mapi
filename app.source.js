@@ -695,6 +695,106 @@ input {
   color: var(--muted);
   font-size: 9px;
 }
+[hidden] {
+  display: none !important;
+}
+.filterSummary {
+  padding: 1px 14px 9px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.filterPanel {
+  margin: 0 10px 10px;
+  padding: 12px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  max-height: 43vh;
+  overflow: auto;
+}
+.filterPanel fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0 0 14px;
+}
+.filterPanel legend {
+  font:
+    normal 16px Georgia,
+    serif;
+  margin-bottom: 9px;
+}
+.filterGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.filterChoice {
+  border: 1px solid #bfc4bf;
+  background: transparent;
+  color: var(--ink);
+  min-height: 42px;
+  padding: 7px;
+  text-align: left;
+  font-size: 11px;
+}
+.filterChoice.active,
+.filterChoice[aria-pressed="true"] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: white;
+}
+.filterChecks {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2px;
+}
+.filterChecks label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+}
+.resetFilters {
+  width: 100%;
+  border: 1px solid #aeb5af;
+  background: transparent;
+  color: var(--ink);
+  min-height: 44px;
+  font-size: 11px;
+}
+.sheetTools {
+  display: flex;
+  gap: 7px;
+  padding: 0 14px 9px;
+}
+.toolBtn {
+  border: 0;
+  border-bottom: 1px solid #aeb5af;
+  background: transparent;
+  color: var(--muted);
+  padding: 6px 0;
+  font-size: 10px;
+  text-align: left;
+}
+.toolBtn + .toolBtn {
+  margin-left: 14px;
+}
+.toolBtn:focus-visible,
+.filterChoice:focus-visible,
+.resetFilters:focus-visible {
+  outline: 3px solid #315b7d;
+  outline-offset: 2px;
+}
+@media (min-width: 800px) {
+  .filterPanel {
+    max-height: 50vh;
+  }
+}
 .routeRow {
   display: grid;
   grid-template-columns: 28px 1fr auto;
@@ -827,4 +927,107 @@ input {
   .leaflet-bottom {
     bottom: 20px;
   }
+}
+/* Search/filter and detail hierarchy additions. Merged into app.css for deployment. */
+.filterSummary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  white-space: normal;
+}
+.resultCount {
+  font-weight: bold;
+  color: var(--ink);
+  margin-right: 2px;
+}
+.activeFilter {
+  border: 1px solid #aeb5af;
+  background: var(--white);
+  color: var(--ink);
+  min-height: 44px;
+  padding: 5px 8px;
+  font-size: 11px;
+}
+.activeFilter:hover {
+  border-color: var(--ink);
+}
+.detailHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+.detailHeader > div {
+  min-width: 0;
+}
+.saveTop {
+  flex: none;
+  border: 1px solid #aeb5af;
+  background: transparent;
+  color: var(--ink);
+  min-height: 44px;
+  padding: 8px 10px;
+  font-size: 11px;
+}
+.saveTop.active {
+  background: #ddd7c9;
+}
+.detailSection {
+  margin-top: 22px;
+}
+.detailSection h2,
+.trustBox h2 {
+  font:
+    normal 19px/1.25 Georgia,
+    "Times New Roman",
+    serif;
+  margin: 0 0 8px;
+}
+.detailSection .why {
+  margin: 0;
+}
+.trustBox {
+  margin-top: 24px;
+  padding: 15px;
+  border: 1px solid var(--line);
+  background: var(--white);
+}
+.trustBox > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.trustBox p {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+.trustSignals {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+}
+.trustSignals li {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  border-top: 1px solid var(--line);
+  padding: 8px 0;
+  font-size: 12px;
+}
+.trustSignals .ok span {
+  color: #35513e;
+  font-weight: bold;
+}
+.trustSignals .missing {
+  color: var(--muted);
+}
+.actions .primary {
+  grid-column: 1/-1;
+  font-size: 12px;
+}
+.related button small {
+  font-size: 11px;
 }

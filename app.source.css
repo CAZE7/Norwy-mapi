@@ -15,12 +15,18 @@
   min-height: 44px;
 }
 .filterBtn,
-.chip {
+.chip,
+.filterChoice,
+.resetFilters {
   min-height: 44px;
   font-size: 12px;
 }
 .filterBtn {
   min-width: 64px;
+}
+.filterSummary,
+.toolBtn {
+  font-size: 12px;
 }
 .title small {
   font-size: 11px;

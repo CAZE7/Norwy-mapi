@@ -118,35 +118,151 @@
         aria-label="Ergebnisbereich vergrößern oder verkleinern"
       ></button>
       <div class="sheetHead">
-        <label class="visuallyHidden" for="search">Ort suchen</label
+        <label class="visuallyHidden" for="search"
+          >Orte, Regionen, Kategorien und Beschreibungen durchsuchen</label
         ><input
           id="search"
           class="search"
           type="search"
           autocomplete="off"
-          placeholder="Ort, Region oder Landschaft"
+          spellcheck="false"
+          placeholder="Ort, Alias, Region oder Kategorie"
         /><button
           class="filterBtn"
+          id="filterToggle"
+          aria-expanded="false"
+          aria-controls="filterPanel"
+        >
+          Filter
+        </button>
+      </div>
+      <div class="filterSummary" id="filterSummary" aria-live="polite">
+        Alle Orte
+      </div>
+      <div class="filterPanel" id="filterPanel" hidden>
+        <fieldset>
+          <legend>Art des Ortes</legend>
+          <div class="filterGrid">
+            <button
+              type="button"
+              class="filterChoice"
+              data-category-filter="waterfall"
+              aria-pressed="false"
+            >
+              Wasserfälle</button
+            ><button
+              type="button"
+              class="filterChoice"
+              data-category-filter="viewpoint"
+              aria-pressed="false"
+            >
+              Aussicht</button
+            ><button
+              type="button"
+              class="filterChoice"
+              data-category-filter="lake"
+              aria-pressed="false"
+            >
+              Seen</button
+            ><button
+              type="button"
+              class="filterChoice"
+              data-category-filter="mountain_hike"
+              aria-pressed="false"
+            >
+              Berge &amp; Wandern</button
+            ><button
+              type="button"
+              class="filterChoice"
+              data-category-filter="beach"
+              aria-pressed="false"
+            >
+              Strände &amp; Ufer</button
+            ><button
+              type="button"
+              class="filterChoice"
+              data-category-filter="lighthouse,fjord"
+              aria-pressed="false"
+            >
+              Küste &amp; Leuchttürme</button
+            ><button
+              type="button"
+              class="filterChoice"
+              data-category-filter="geology,glacier,spring,dam"
+              aria-pressed="false"
+            >
+              Geologie &amp; Gletscher</button
+            ><button
+              type="button"
+              class="filterChoice"
+              data-category-filter="wilderness"
+              aria-pressed="false"
+            >
+              Nationalparks</button
+            ><button
+              type="button"
+              class="filterChoice"
+              data-category-filter="picnic,scenic_road"
+              aria-pressed="false"
+            >
+              Rast &amp; Roadtrip</button
+            ><button
+              type="button"
+              class="filterChoice"
+              data-category-filter="bakery,cafe,shop_market"
+              aria-pressed="false"
+            >
+              Essen &amp; Einkaufen</button
+            ><button
+              type="button"
+              class="filterChoice"
+              data-category-filter="culture,nature_place"
+              aria-pressed="false"
+            >
+              Kultur &amp; Besonderes
+            </button>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Zusätzlich</legend>
+          <div class="filterChecks">
+            <label><input type="checkbox" id="filterKnown" /> Highlights</label
+            ><label
+              ><input type="checkbox" id="filterLocal" /> Lokale Tipps</label
+            ><label
+              ><input type="checkbox" id="filterDiscovery" />
+              Entdeckungen</label
+            ><label
+              ><input type="checkbox" id="filterQuality" /> Gut
+              dokumentiert</label
+            ><label><input type="checkbox" id="filterPhoto" /> Mit Bild</label
+            ><label
+              ><input type="checkbox" id="filterNear" /> In meiner Nähe</label
+            ><label
+              ><input type="checkbox" id="filterSaved" /> Gespeichert</label
+            >
+          </div>
+        </fieldset>
+        <button type="button" class="resetFilters" id="resetFilters">
+          Alle Filter zurücksetzen
+        </button>
+      </div>
+      <div class="sheetTools">
+        <button
+          class="toolBtn"
           id="layersTop"
           aria-expanded="false"
           aria-controls="layerPanel"
         >
           Ebenen</button
         ><button
-          class="filterBtn"
+          class="toolBtn"
           id="legalButton"
           aria-expanded="false"
           aria-controls="legal"
         >
-          Quellen
+          Quellen &amp; Lizenzen
         </button>
-      </div>
-      <div class="chips" id="chips">
-        <button class="chip active" data-filter="all">Alle</button
-        ><button class="chip" data-filter="known">Bekannte Orte</button
-        ><button class="chip" data-filter="hidden">Lokale Tipps</button
-        ><button class="chip" data-filter="photo">Mit Bild</button
-        ><button class="chip" data-filter="quality">Qualität A/B</button>
       </div>
       <div class="content" id="content"></div>
     </section>
@@ -272,13 +388,25 @@
           <a href="steder_v23_1397.geojson" download>GeoJSON herunterladen</a> ·
           <a href="steder_v23_1397.csv" download>CSV herunterladen</a>
         </p>
-        <h2>Qualitätsanzeige</h2>
+        <h2>Datenvertrauen</h2>
         <p>
-          Die Qualitätsstufe bewertet ausschließlich die Dokumentation im
-          Datensatz: exakte OSM-Objektquelle, frei lizenziertes Bild,
-          Zugangsangabe und Recherchelink. Sie ist keine Sicherheitsbewertung
-          und keine Garantie für Befahrbarkeit oder Öffnung.
+          Der Status bewertet ausschließlich die Dokumentation im Datensatz –
+          nicht Schönheit, Sicherheit, aktuelle Öffnung oder Befahrbarkeit.
         </p>
+        <ul>
+          <li>
+            <strong>Gut dokumentiert:</strong> mehrere belastbare
+            Vertrauenssignale vorhanden.
+          </li>
+          <li>
+            <strong>Teilweise geprüft:</strong> solide Basisdaten, aber einzelne
+            Angaben fehlen.
+          </li>
+          <li>
+            <strong>Vor Ort prüfen:</strong> grundlegender Kartenpunkt mit
+            begrenzter Zusatzinformation.
+          </li>
+        </ul>
         <h2>Offizielle Turrouten</h2>
         <p>
           Die optionalen Ebenen für Fuß-, Rad- und Skirouten werden als
