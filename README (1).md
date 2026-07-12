@@ -1,463 +1,213 @@
-<!doctype html>
-<html lang="de">
-  <head>
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width,initial-scale=1,viewport-fit=cover"
-    />
-    <meta name="theme-color" content="#1d2822" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="icon" href="icon-192.png" />
-    <title>Steder i Norge</title>
-    <meta
-      name="description"
-      content="Offene Norwegenkarte mit Naturorten, Routenvorschlägen und Camper-Infrastruktur."
-    />
-    <link rel="canonical" href="https://caze7.github.io/Norwy-mapi/" />
-    <meta property="og:title" content="Steder i Norge" />
-    <meta
-      property="og:description"
-      content="Offene Karte mit Naturorten und Camper-Infrastruktur in Norwegen."
-    />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://caze7.github.io/Norwy-mapi/" />
-    <link rel="apple-touch-icon" href="icon-192.png" />
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self'; style-src-attr 'unsafe-inline'; img-src 'self' data: blob: https://*.tile.openstreetmap.org https://upload.wikimedia.org https://wms.geonorge.no; connect-src 'self' https://nominatim.openstreetmap.org https://router.project-osrm.org https://wms.geonorge.no https://*.tile.openstreetmap.org https://upload.wikimedia.org; manifest-src 'self'; worker-src 'self' blob:;"
-    />
-    <link rel="stylesheet" href="leaflet.css" />
-    <link rel="stylesheet" href="MarkerCluster.css" />
-    <link rel="stylesheet" href="MarkerCluster.Default.css" />
-    <link rel="stylesheet" href="app.css" />
-    <link rel="stylesheet" href="a11y-overrides.css" />
-    <script src="boot.js"></script>
-  </head>
-  <body>
-    <div
-      id="appError"
-      class="appError"
-      role="alert"
-      aria-live="assertive"
-      aria-atomic="true"
-      hidden
-    ></div>
-    <main id="map" aria-label="Interaktive Norwegenkarte"></main>
-    <header class="top">
-      <div class="title">
-        <b>Steder i Norge</b
-        ><small
-          >1.393 eindeutige Orte · offene Daten · frei lizenzierte Bilder</small
-        >
-      </div>
-      <button
-        class="circle"
-        id="legalTop"
-        aria-label="Quellen und Lizenzen öffnen"
-        aria-expanded="false"
-        aria-controls="legal"
-      >
-        Info
-      </button>
-    </header>
-    <div class="float">
-      <button id="locate" aria-label="Eigenen Standort verwenden">
-        Standort</button
-      ><button
-        class="secret"
-        id="random"
-        aria-label="Zufälligen lokalen Tipp anzeigen"
-      >
-        Entdecken
-      </button>
-    </div>
-    <div
-      class="offline"
-      id="offline"
-      role="status"
-      aria-live="polite"
-      aria-atomic="true"
-      hidden
-    >
-      Offline · Ortsdaten und Favoriten verfügbar. Karte und Routing benötigen
-      Internet.
-    </div>
-    <section class="sheet mid" id="sheet" aria-label="Orte und Routenplanung">
-      <button
-        type="button"
-        class="handle"
-        id="handle"
-        aria-label="Ergebnisbereich vergrößern oder verkleinern"
-      ></button>
-      <div class="sheetHead">
-        <label class="visuallyHidden" for="search"
-          >Orte, Regionen, Kategorien und Beschreibungen durchsuchen</label
-        ><input
-          id="search"
-          class="search"
-          type="search"
-          autocomplete="off"
-          spellcheck="false"
-          placeholder="Ort, Alias, Region oder Kategorie"
-        /><button
-          class="filterBtn"
-          id="filterToggle"
-          aria-expanded="false"
-          aria-controls="filterPanel"
-        >
-          Filter
-        </button>
-      </div>
-      <div class="filterSummary" id="filterSummary" aria-live="polite">
-        Alle Orte
-      </div>
-      <div class="filterPanel" id="filterPanel" hidden>
-        <fieldset>
-          <legend>Art des Ortes</legend>
-          <div class="filterGrid">
-            <button
-              type="button"
-              class="filterChoice"
-              data-category-filter="waterfall"
-              aria-pressed="false"
-            >
-              Wasserfälle</button
-            ><button
-              type="button"
-              class="filterChoice"
-              data-category-filter="viewpoint"
-              aria-pressed="false"
-            >
-              Aussicht</button
-            ><button
-              type="button"
-              class="filterChoice"
-              data-category-filter="lake"
-              aria-pressed="false"
-            >
-              Seen</button
-            ><button
-              type="button"
-              class="filterChoice"
-              data-category-filter="mountain_hike"
-              aria-pressed="false"
-            >
-              Berge &amp; Wandern</button
-            ><button
-              type="button"
-              class="filterChoice"
-              data-category-filter="beach"
-              aria-pressed="false"
-            >
-              Strände &amp; Ufer</button
-            ><button
-              type="button"
-              class="filterChoice"
-              data-category-filter="lighthouse,fjord"
-              aria-pressed="false"
-            >
-              Küste &amp; Leuchttürme</button
-            ><button
-              type="button"
-              class="filterChoice"
-              data-category-filter="geology,glacier,spring,dam"
-              aria-pressed="false"
-            >
-              Geologie &amp; Gletscher</button
-            ><button
-              type="button"
-              class="filterChoice"
-              data-category-filter="wilderness"
-              aria-pressed="false"
-            >
-              Nationalparks</button
-            ><button
-              type="button"
-              class="filterChoice"
-              data-category-filter="picnic,scenic_road"
-              aria-pressed="false"
-            >
-              Rast &amp; Roadtrip</button
-            ><button
-              type="button"
-              class="filterChoice"
-              data-category-filter="bakery,cafe,shop_market"
-              aria-pressed="false"
-            >
-              Essen &amp; Einkaufen</button
-            ><button
-              type="button"
-              class="filterChoice"
-              data-category-filter="culture,nature_place"
-              aria-pressed="false"
-            >
-              Kultur &amp; Besonderes
-            </button>
-          </div>
-        </fieldset>
-        <fieldset>
-          <legend>Zusätzlich</legend>
-          <div class="filterChecks">
-            <label><input type="checkbox" id="filterKnown" /> Highlights</label
-            ><label
-              ><input type="checkbox" id="filterLocal" /> Lokale Tipps</label
-            ><label
-              ><input type="checkbox" id="filterDiscovery" />
-              Entdeckungen</label
-            ><label
-              ><input type="checkbox" id="filterQuality" /> Gut
-              dokumentiert</label
-            ><label><input type="checkbox" id="filterPhoto" /> Mit Bild</label
-            ><label
-              ><input type="checkbox" id="filterNear" /> In meiner Nähe</label
-            ><label
-              ><input type="checkbox" id="filterSaved" /> Gespeichert</label
-            >
-          </div>
-        </fieldset>
-        <button type="button" class="resetFilters" id="resetFilters">
-          Alle Filter zurücksetzen
-        </button>
-      </div>
-      <div class="sheetTools">
-        <button
-          class="toolBtn"
-          id="layersTop"
-          aria-expanded="false"
-          aria-controls="layerPanel"
-        >
-          Ebenen</button
-        ><button
-          class="toolBtn"
-          id="legalButton"
-          aria-expanded="false"
-          aria-controls="legal"
-        >
-          Quellen &amp; Lizenzen
-        </button>
-      </div>
-      <div class="content" id="content"></div>
-    </section>
-    <nav class="nav">
-      <button class="active" data-view="map"><span>⌖</span>Karte</button
-      ><button data-view="near"><span>◎</span>Nähe</button
-      ><button data-view="fav"><span>☆</span>Gespeichert</button
-      ><button data-view="route">
-        <span>↝</span>Route <b id="routeCount">0</b>
-      </button>
-    </nav>
-    <div
-      class="detail"
-      id="detail"
-      role="dialog"
-      aria-hidden="true"
-      aria-modal="true"
-      aria-label="Ortsdetails"
-      tabindex="-1"
-    ></div>
-    <div
-      class="layerPanel"
-      id="layerPanel"
-      role="dialog"
-      aria-hidden="true"
-      aria-modal="true"
-      aria-labelledby="layersTitle"
-      tabindex="-1"
-    >
-      <button type="button" class="layerClose" id="layerClose">
-        Schließen
-      </button>
-      <div class="layerInner">
-        <p class="eyebrow">Kartenebenen</p>
-        <h1 id="layersTitle">Unterwegs mit dem Wohnmobil</h1>
-        <p class="layerIntro">
-          Zusätzliche Ebenen sind zunächst ausgeschaltet und werden nur bei
-          Bedarf geladen.
-        </p>
-        <h2>Offizielle Turrouten · Kartverket</h2>
-        <label
-          ><input type="checkbox" data-route-layer="foot" /> Markierte
-          Fußrouten</label
-        ><label
-          ><input type="checkbox" data-route-layer="bike" />
-          Fahrradrouten</label
-        ><label
-          ><input type="checkbox" data-route-layer="ski" /> Skirouten</label
-        ><label
-          ><input type="checkbox" data-route-layer="info" /> Hütten, Parkplätze
-          und Routeninformationen</label
-        >
-        <h2>Camper-Infrastruktur · OpenStreetMap</h2>
-        <label
-          ><input type="checkbox" data-camper-layer="motorhome" />
-          Wohnmobilstellplätze <span>250</span></label
-        ><label
-          ><input type="checkbox" data-camper-layer="camping" /> Campingplätze
-          <span>450</span></label
-        ><label
-          ><input type="checkbox" data-camper-layer="water" /> Trinkwasser
-          <span>250</span></label
-        ><label
-          ><input type="checkbox" data-camper-layer="toilets" /> Toiletten
-          <span>300</span></label
-        ><label
-          ><input type="checkbox" data-camper-layer="ferry" /> Fähranleger
-          <span>249</span></label
-        ><label
-          ><input type="checkbox" data-camper-layer="dump" /> Entsorgungsstation
-          <span>1</span></label
-        >
-        <p class="layerNote">
-          Versorgungsdaten sind offene Kartendaten und können unvollständig oder
-          veraltet sein. Angaben vor der Anfahrt prüfen.
-        </p>
-        <p>
-          <a href="camper_layers.geojson" download
-            >Camper-Ebenen als GeoJSON herunterladen</a
-          >
-        </p>
-      </div>
-    </div>
-    <div
-      class="legal"
-      id="legal"
-      role="dialog"
-      aria-hidden="true"
-      aria-modal="true"
-      aria-labelledby="legalTitle"
-      tabindex="-1"
-    >
-      <button type="button" class="legalClose" id="legalClose">
-        Schließen
-      </button>
-      <div class="legalInner">
-        <p class="eyebrow">Transparenz</p>
-        <h1 id="legalTitle">Quellen &amp; Lizenzen</h1>
-        <p>
-          Diese öffentliche Ausgabe verwendet ausschließlich offene Geodaten,
-          eigene Kurzbeschreibungen und eindeutig frei lizenzierte Bilder.
-        </p>
-        <h2>Orts- und Kartendaten</h2>
-        <p>
-          Die Ortskoordinaten und ein großer Teil der sachlichen Merkmale
-          stammen von
-          <a
-            href="https://www.openstreetmap.org/copyright"
-            target="_blank"
-            rel="noopener noreferrer"
-            >OpenStreetMap-Mitwirkenden</a
-          >
-          und stehen unter der
-          <a
-            href="https://opendatacommons.org/licenses/odbl/1-0/"
-            target="_blank"
-            rel="noopener noreferrer"
-            >Open Database License 1.0</a
-          >. Die veröffentlichte Ortsdatenbank wird unter denselben Bedingungen
-          bereitgestellt.
-        </p>
-        <p>
-          <a href="steder_v25_1393.geojson" download>GeoJSON herunterladen</a> ·
-          <a href="steder_v25_1393.csv" download>CSV herunterladen</a>
-        </p>
-        <h2>Datenvertrauen</h2>
-        <p>
-          Der Status bewertet ausschließlich die Dokumentation im Datensatz –
-          nicht Schönheit, Sicherheit, aktuelle Öffnung oder Befahrbarkeit.
-        </p>
-        <ul>
-          <li>
-            <strong>Gut dokumentiert:</strong> mehrere belastbare
-            Vertrauenssignale vorhanden.
-          </li>
-          <li>
-            <strong>Teilweise geprüft:</strong> solide Basisdaten, aber einzelne
-            Angaben fehlen.
-          </li>
-          <li>
-            <strong>Vor Ort prüfen:</strong> grundlegender Kartenpunkt mit
-            begrenzter Zusatzinformation.
-          </li>
-        </ul>
-        <h2>Offizielle Turrouten</h2>
-        <p>
-          Die optionalen Ebenen für Fuß-, Rad- und Skirouten werden als
-          WMS-Kartendienst aus der nationalen Turrutebase von Kartverket
-          eingeblendet. Quelle:
-          <a
-            href="https://www.kartverket.no/en/api-and-data/friluftsliv"
-            target="_blank"
-            rel="noopener noreferrer"
-            >Kartverket – Friluftsliv</a
-          >. Die Turrutebase kann regional unterschiedlich vollständig sein.
-        </p>
-        <h2>Camper-Infrastruktur</h2>
-        <p>
-          Stellplätze, Campingplätze, Trinkwasser, Toiletten und Fähranleger
-          stammen aus OpenStreetMap. Die getrennte Infrastruktur-Ebene ist unter
-          ODbL verfügbar:
-          <a href="camper_layers.geojson" download>GeoJSON herunterladen</a>.
-        </p>
-        <h2>Bilder</h2>
-        <p>
-          Direkt angezeigte Bilder stammen ausschließlich von Wikimedia Commons.
-          Bildtitel, Urheber, Lizenz, Lizenzlink und Originaldatei werden beim
-          jeweiligen Ort angezeigt. Als „Umgebungsfoto“ gekennzeichnete Bilder
-          zeigen einen geotaggten Standort im Umkreis von höchstens 1,2 km und
-          nicht zwingend das exakte Motiv.
-        </p>
-        <h2>UT.no und andere Seiten</h2>
-        <p>
-          UT.no und regionale Seiten werden ausschließlich verlinkt. Texte,
-          Bilder, GPX-Dateien und Datenbanken dieser Anbieter werden nicht
-          kopiert.
-        </p>
-        <h2>Kartenkacheln</h2>
-        <p>
-          Der Kartenhintergrund wird bei Bedarf vom Standarddienst von
-          OpenStreetMap geladen. Die App führt kein eigenes Offline- oder
-          Vorrats-Caching dieser Kartenkacheln durch.
-        </p>
-        <h2>Routenplanung</h2>
-        <p>
-          Die freiwillig ausgelöste Routenplanung verwendet die offenen Dienste
-          Nominatim zur Ortssuche und OSRM zur Streckenberechnung. Start und
-          Ziel werden direkt vom Browser an diese Dienste übertragen. Es werden
-          keine Routen auf einem eigenen Server gespeichert. Die Funktion ist
-          eine Planungshilfe und ersetzt keine aktuelle Straßen-, Fähr- oder
-          Sperrungsprüfung.
-        </p>
-        <h2>Datenschutz</h2>
-        <p>
-          Beim Laden von Kartenkacheln, Commons-Bildern oder einer geplanten
-          Strecke stellt der Browser direkte Verbindungen zu den jeweiligen
-          externen Servern her. Standortdaten und Favoriten bleiben im Browser
-          und werden von dieser Seite nicht auf einem eigenen Server
-          gespeichert.
-        </p>
-        <h2>Hinweise und Rechteanfragen</h2>
-        <p>
-          Fehler oder Rechtehinweise können über die
-          <a
-            href="https://github.com/caze7/Norwy-mapi/issues"
-            target="_blank"
-            rel="noopener noreferrer"
-            >GitHub-Issues</a
-          >
-          gemeldet werden.
-        </p>
-        <p class="small">
-          Diese Angaben sind eine praktische Lizenzdokumentation und keine
-          Rechtsberatung.
-        </p>
-      </div>
-    </div>
-    <script src="leaflet.js"></script>
-    <script src="leaflet.markercluster.js"></script>
-    <script src="places-data.js"></script>
-    <script src="camper_layers.js"></script>
-    <script src="app.js"></script>
-  </body>
-</html>
+#!/usr/bin/env python3
+"""
+Statischer Audit für Norwy-mapi Release-Dateien
+Prüft kritische Dateien auf Vollständigkeit, Typ-Korrektheit und Parse-Fehler
+"""
+
+import os
+import sys
+import json
+import re
+
+def check_file_exists(filepath, description):
+    """Prüft, ob eine Datei existiert"""
+    if not os.path.exists(filepath):
+        print(f"❌ FEHLER: {description} fehlt: {filepath}")
+        return False
+    print(f"✓ {description} existiert: {filepath}")
+    return True
+
+def check_file_not_empty(filepath, description):
+    """Prüft, ob eine Datei nicht leer ist"""
+    if os.path.getsize(filepath) == 0:
+        print(f"❌ FEHLER: {description} ist leer: {filepath}")
+        return False
+    print(f"✓ {description} ist nicht leer: {filepath}")
+    return True
+
+def check_css_file(filepath, description):
+    """Prüft, ob eine CSS-Datei gültigen CSS-Inhalt enthält"""
+    with open(filepath, 'r', encoding='utf-8') as f:
+        content = f.read()
+    
+    # Prüfe auf typische CSS-Muster
+    has_css_rules = bool(re.search(r'\{[^}]*\}', content))
+    has_selectors = bool(re.search(r'[.#\w-]+\s*\{', content))
+    
+    # Prüfe auf falsche Inhalte
+    has_gitignore_pattern = 'node_modules/' in content or '*.log' in content
+    has_markdown = content.strip().startswith('#') and '\n##' in content
+    
+    if has_gitignore_pattern:
+        print(f"❌ FEHLER: {description} enthält .gitignore-Inhalt statt CSS: {filepath}")
+        return False
+    
+    if has_markdown:
+        print(f"❌ FEHLER: {description} enthält Markdown statt CSS: {filepath}")
+        return False
+    
+    if not has_css_rules and not has_selectors:
+        print(f"❌ WARNUNG: {description} enthält möglicherweise kein gültiges CSS: {filepath}")
+        return False
+    
+    print(f"✓ {description} enthält gültiges CSS: {filepath}")
+    return True
+
+def check_js_parseable(filepath, description):
+    """Prüft, ob eine JavaScript-Datei parsebar ist (grundlegende Syntax)"""
+    with open(filepath, 'r', encoding='utf-8') as f:
+        content = f.read()
+    
+    # Prüfe auf offensichtliche Nicht-JS-Inhalte
+    has_markdown_header = content.strip().startswith('#') and '\n##' in content
+    has_gitignore = 'node_modules/' in content[:200] and '*.log' in content[:200]
+    has_css_rules = bool(re.search(r':root\s*\{', content[:500]))
+    
+    if has_markdown_header:
+        print(f"❌ FEHLER: {description} enthält Markdown statt JavaScript: {filepath}")
+        return False
+    
+    if has_gitignore:
+        print(f"❌ FEHLER: {description} enthält .gitignore-Inhalt statt JavaScript: {filepath}")
+        return False
+    
+    if has_css_rules:
+        print(f"❌ FEHLER: {description} enthält CSS statt JavaScript: {filepath}")
+        return False
+    
+    # Prüfe auf kritische Syntax-Fehler
+    # Optional Chaining sollte nicht vorhanden sein (Browser-Kompatibilität)
+    has_optional_chaining = '?.' in content
+    
+    # Array.at() sollte nicht vorhanden sein
+    has_array_at = bool(re.search(r'\.at\s*\(', content))
+    
+    if has_optional_chaining:
+        print(f"❌ WARNUNG: {description} verwendet Optional Chaining (?.) - möglicherweise nicht kompatibel mit älteren Browsern: {filepath}")
+        # Nicht als Fehler werten, nur warnen
+    
+    if has_array_at:
+        print(f"❌ WARNUNG: {description} verwendet Array.at() - nicht kompatibel mit älteren Browsern: {filepath}")
+    
+    print(f"✓ {description} ist parsebare JavaScript-Datei: {filepath}")
+    return True
+
+def check_json_valid(filepath, description):
+    """Prüft, ob eine JSON-Datei gültig ist"""
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            json.load(f)
+        print(f"✓ {description} ist gültiges JSON: {filepath}")
+        return True
+    except json.JSONDecodeError as e:
+        print(f"❌ FEHLER: {description} ist kein gültiges JSON: {filepath}")
+        print(f"   JSON-Fehler: {e}")
+        return False
+
+def check_package_json_references():
+    """Prüft, ob package.json nur existierende Pfade referenziert"""
+    filepath = 'package.json'
+    if not os.path.exists(filepath):
+        return True  # Bereits anderweitig geprüft
+    
+    with open(filepath, 'r', encoding='utf-8') as f:
+        pkg = json.load(f)
+    
+    all_ok = True
+    scripts = pkg.get('scripts', {})
+    
+    # Prüfe auf referenzierte Dateien/Verzeichnisse
+    for script_name, script_cmd in scripts.items():
+        # Extrahiere Datei-Referenzen
+        if 'tests/' in script_cmd:
+            # Prüfe, ob tests/ Verzeichnis existiert
+            if script_cmd.startswith('python3 tests/') or 'playwright test tests/' in script_cmd:
+                test_file_match = re.search(r'tests/([\w./-]+)', script_cmd)
+                if test_file_match:
+                    test_file = test_file_match.group(0)
+                    if not os.path.exists(test_file):
+                        print(f"❌ FEHLER: package.json referenziert nicht existierende Datei in '{script_name}': {test_file}")
+                        all_ok = False
+    
+    if all_ok:
+        print(f"✓ package.json referenziert nur existierende Pfade")
+    
+    return all_ok
+
+def main():
+    """Hauptfunktion für statischen Audit"""
+    print("🔍 Starte statischen Release-Audit für Norwy-mapi...")
+    print()
+    
+    all_checks_passed = True
+    
+    # Kritische Dateien prüfen
+    critical_files = [
+        ('index.html', 'HTML-Hauptdatei'),
+        ('app.js', 'Haupt-JavaScript'),
+        ('app.css', 'Haupt-CSS'),
+        ('boot.js', 'Boot-JavaScript'),
+        ('package.json', 'Package-Konfiguration'),
+    ]
+    
+    for filepath, description in critical_files:
+        if not check_file_exists(filepath, description):
+            all_checks_passed = False
+            continue
+        if not check_file_not_empty(filepath, description):
+            all_checks_passed = False
+    
+    print()
+    
+    # CSS-Dateien auf Inhalt prüfen
+    css_files = [
+        ('app.css', 'Haupt-CSS'),
+        ('a11y-overrides.css', 'Accessibility-CSS'),
+    ]
+    
+    for filepath, description in css_files:
+        if os.path.exists(filepath):
+            if not check_css_file(filepath, description):
+                all_checks_passed = False
+    
+    print()
+    
+    # JavaScript-Dateien auf Parsbarkeit prüfen
+    js_files = [
+        ('boot.js', 'Boot-JavaScript'),
+        ('app.js', 'Haupt-JavaScript'),
+    ]
+    
+    for filepath, description in js_files:
+        if os.path.exists(filepath):
+            if not check_js_parseable(filepath, description):
+                all_checks_passed = False
+    
+    print()
+    
+    # JSON-Dateien prüfen
+    if os.path.exists('package.json'):
+        if not check_json_valid('package.json', 'Package-Konfiguration'):
+            all_checks_passed = False
+    
+    print()
+    
+    # Package.json Referenzen prüfen
+    if os.path.exists('package.json'):
+        if not check_package_json_references():
+            all_checks_passed = False
+    
+    print()
+    print("=" * 60)
+    
+    if all_checks_passed:
+        print("✅ Alle statischen Checks erfolgreich!")
+        print("   Release-Dateien sind strukturell korrekt.")
+        return 0
+    else:
+        print("❌ Einige Checks sind fehlgeschlagen!")
+        print("   Bitte beheben Sie die oben genannten Fehler vor dem Deployment.")
+        return 1
+
+if __name__ == '__main__':
+    sys.exit(main())

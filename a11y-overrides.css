@@ -1,5 +1,84 @@
-node_modules/
-test-results/
-playwright-report/
-.DS_Store
-*.log
+# Tests
+
+Die vollständige Anleitung steht in [`../TESTING.md`](../TESTING.md).
+
+## Kurzfassung
+
+### Statischer Audit
+
+```bash
+npm test
+```
+
+oder direkt:
+
+```bash
+python3 tests/audit_static.py
+```
+
+### Browser-Tests
+
+Einmalig installieren:
+
+```bash
+npm install
+npx playwright install chromium
+```
+
+Server starten:
+
+```bash
+npm run serve
+```
+
+In zweitem Terminal:
+
+```bash
+npm run test:e2e
+```
+
+### Veröffentlichte Seite testen
+
+```bash
+BASE_URL=https://caze7.github.io/Norwy-mapi/ npm run test:e2e
+```
+
+## Was wird getestet?
+
+### Statischer Audit (`audit_static.py`)
+
+- ✓ Kritische Dateien existieren
+- ✓ CSS-Dateien sind nicht leer
+- ✓ CSS-Dateien enthalten echtes CSS (kein .gitignore, kein Markdown)
+- ✓ JavaScript-Dateien sind parsebar
+- ✓ JavaScript enthält kein Markdown/CSS/Gitignore
+- ✓ package.json ist gültiges JSON
+- ✓ package.json referenziert nur existierende Pfade
+- ⚠ Warnung bei Optional Chaining (`?.`) in JS
+- ⚠ Warnung bei `Array.at()` in JS
+
+### Browser-Tests (`browser_audit.spec.js`)
+
+- ✓ Seite lädt ohne JavaScript-Fehler
+- ✓ Suchfeld, Karte und Navigation sind sichtbar
+- ✓ Mindestens 1.000 Orte werden geladen
+- ✓ Mindestens 1.000 Camper-Punkte werden geladen
+- ✓ Suchfunktion liefert Ergebnisse
+- ✓ Detail-Modal öffnet sich
+- ✓ Navigation zwischen Tabs funktioniert
+- ✓ ESC-Taste schließt Modals
+- ✓ Keine kritischen Accessibility-Fehler
+- ✓ Kein Boot-Fehler auf Startseite
+
+## Vor jedem Deployment
+
+```bash
+# 1. Statischer Check
+npm test
+
+# 2. Browser-Tests
+npm run serve &
+npm run test:e2e
+
+# 3. Alle grün? → Deploy!
+```

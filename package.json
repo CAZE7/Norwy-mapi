@@ -1,6 +1,6 @@
 {
   "name": "norwy-mapi",
-  "version": "26.0.0",
+  "version": "26.1.0",
   "private": true,
   "description": "Statische Leaflet-Web-App für Norwegen-POIs und Camper-Infrastruktur",
   "scripts": {
@@ -9,7 +9,7 @@
     "test:e2e": "playwright test tests/browser_audit.spec.js --reporter=line --workers=1"
   },
   "devDependencies": {
-    "@axe-core/playwright": "4.10.2",
-    "@playwright/test": "1.61.1"
+    "@axe-core/playwright": "^4.10.2",
+    "@playwright/test": "^1.61.1"
   }
 }
