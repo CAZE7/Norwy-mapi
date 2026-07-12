@@ -1,14 +1,15 @@
-.leaflet-cluster-anim .leaflet-marker-icon, .leaflet-cluster-anim .leaflet-marker-shadow {
-	-webkit-transition: -webkit-transform 0.3s ease-out, opacity 0.3s ease-in;
-	-moz-transition: -moz-transform 0.3s ease-out, opacity 0.3s ease-in;
-	-o-transition: -o-transform 0.3s ease-out, opacity 0.3s ease-in;
-	transition: transform 0.3s ease-out, opacity 0.3s ease-in;
-}
-
-.leaflet-cluster-spider-leg {
-	/* stroke-dashoffset (duration and function) should match with leaflet-marker-icon transform in order to track it exactly */
-	-webkit-transition: -webkit-stroke-dashoffset 0.3s ease-out, -webkit-stroke-opacity 0.3s ease-in;
-	-moz-transition: -moz-stroke-dashoffset 0.3s ease-out, -moz-stroke-opacity 0.3s ease-in;
-	-o-transition: -o-stroke-dashoffset 0.3s ease-out, -o-stroke-opacity 0.3s ease-in;
-	transition: stroke-dashoffset 0.3s ease-out, stroke-opacity 0.3s ease-in;
+{
+  "name": "norwy-mapi",
+  "version": "26.0.0",
+  "private": true,
+  "description": "Statische Leaflet-Web-App für Norwegen-POIs und Camper-Infrastruktur",
+  "scripts": {
+    "serve": "python3 -m http.server 8000",
+    "test": "python3 tests/audit_static.py",
+    "test:e2e": "playwright test tests/browser_audit.spec.js --reporter=line --workers=1"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.10.2",
+    "@playwright/test": "1.61.1"
+  }
 }

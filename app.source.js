@@ -160,32 +160,7 @@ input {
   font-size: 10px;
   padding: 0 7px;
 }
-.chips {
-  display: flex;
-  gap: 6px;
-  padding: 0 14px 10px;
-  overflow-x: auto;
-  flex: none;
-  scrollbar-width: none;
-}
-.chips::-webkit-scrollbar {
-  display: none;
-}
-.chip {
-  white-space: nowrap;
-  border: 1px solid #bfc4bf;
-  border-radius: 1px;
-  background: transparent;
-  padding: 6px 10px;
-  color: #4d5851;
-  font-size: 10px;
-  letter-spacing: 0.04em;
-}
-.chip.active {
-  background: var(--ink);
-  border-color: var(--ink);
-  color: white;
-}
+
 .content {
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -825,20 +800,6 @@ input {
     14px/1.5 Georgia,
     serif;
 }
-.install {
-  display: none;
-  position: fixed;
-  z-index: 1500;
-  top: 78px;
-  right: 12px;
-  border: 0;
-  background: var(--ink);
-  color: white;
-  padding: 10px 12px;
-  font-size: 9px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
 .offline {
   position: fixed;
   z-index: 1400;
@@ -846,9 +807,9 @@ input {
   left: 12px;
   background: #e9dfca;
   color: #604c27;
-  padding: 7px 9px;
-  font-size: 9px;
-  display: none;
+  padding: 9px 12px;
+  font-size: 12px;
+  line-height: 1.4;
 }
 .pin {
   width: 17px;
@@ -1033,7 +994,6 @@ input {
 }
 /* Semantic controls and CSP-safe marker colors. Merged into app.css. */
 .appError {
-  display: none;
   position: fixed;
   z-index: 9999;
   left: 12px;
@@ -1187,4 +1147,17 @@ input {
     sans-serif;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+.routeRow {
+  grid-template-columns: 28px minmax(0, 1fr);
+}
+.routeControls {
+  grid-column: 2;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+.routeControls button {
+  min-width: 44px;
+  padding: 7px 9px;
+  font-size: 11px;
 }

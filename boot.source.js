@@ -218,6 +218,24 @@ function utilityTrustLabel(d) {
       ? "Teilweise geprüft"
       : "Vor Ort prüfen";
 }
+function utilityLocation(d) {
+  const road = String(d.road || "").trim(),
+    place = String(d.place || "").trim();
+  if (road && /^\d+$/.test(road))
+    return place ? `${place} · Straße ${road}` : `Straße ${road}`;
+  if (road && place) return `${road}, ${place}`;
+  return road || place || "Standort laut OpenStreetMap";
+}
+function utilityPhones(d) {
+  const phones = Array.isArray(d.phones) ? d.phones : d.phone ? [d.phone] : [];
+  if (!phones.length) return "";
+  return `<p class="utilityPhones"><b>Telefon:</b><br>${phones
+    .map((phone) => {
+      const href = String(phone).replace(/[^+0-9]/g, "");
+      return `<a href="tel:${esc(href)}">${esc(phone)}</a>`;
+    })
+    .join("<br>")}</p>`;
+}
 function utilityPopup(d) {
   const bits = [
     d.openingHours
@@ -229,7 +247,7 @@ function utilityPopup(d) {
   ]
     .filter(Boolean)
     .join("<br>");
-  return `<div class="utilityPopup"><div class="uMeta">${esc(d.label)} · ${utilityTrustLabel(d)}</div><h3>${esc(d.name)}</h3><p>${esc(d.road || d.place)}</p>${bits ? `<p>${bits}</p>` : ""}${d.website ? `<p><a href="${esc(d.website)}" target="_blank" rel="noopener noreferrer">Website</a></p>` : ""}<p><a href="https://www.google.com/maps/search/?api=1&query=${d.lat},${d.lon}" target="_blank" rel="noopener noreferrer">Navigation</a> · <a href="${esc(d.source)}" target="_blank" rel="noopener noreferrer">Datenquelle</a></p></div>`;
+  return `<div class="utilityPopup"><div class="uMeta">${esc(d.label)} · ${utilityTrustLabel(d)}</div><h3>${esc(d.name)}</h3><p>${esc(utilityLocation(d))}</p>${bits ? `<p>${bits}</p>` : ""}${utilityPhones(d)}${d.website ? `<p><a href="${esc(d.website)}" target="_blank" rel="noopener noreferrer">Website</a></p>` : ""}<p><a href="https://www.google.com/maps/search/?api=1&query=${d.lat},${d.lon}" target="_blank" rel="noopener noreferrer">Navigation</a> · <a href="${esc(d.source)}" target="_blank" rel="noopener noreferrer">Datenquelle</a></p></div>`;
 }
 CAMPER_DATA.forEach((d) => {
   const ic = L.divIcon({
@@ -456,7 +474,7 @@ function card(d) {
   const km = user
     ? ` · ${hav(user[0], user[1], d.lat, d.lon).toFixed(1)} km`
     : "";
-  return `<button type="button" class="place" data-action="open-detail" data-id="${d.id}" aria-label="${esc(d.name)} – Details öffnen">${d.photo ? `<img class="thumb" loading="lazy" src="${esc(d.photo)}" alt="${esc(d.name)}">` : `<span class="thumb ph" aria-hidden="true"></span>`}<span class="placeText"><span class="placeBadges"><span class="tag ${d.fameId === "highlight" ? "known" : ""}">${fameLabel(d)}</span><span class="qualityBadge ${trustClass(d)}">${trustLabel(d)}</span></span><span class="placeTitle">${esc(d.name)}</span><span class="placeMeta">${esc(d.cat)} · ${esc(d.region)}${km}</span></span><span class="arrow" aria-hidden="true">›</span></button>`;
+  return `<button type="button" class="place" data-action="open-detail" data-id="${d.id}" aria-label="${esc(d.name)} – Details öffnen">${d.photo ? `<img class="thumb" loading="lazy" src="${esc(d.photo)}" alt="${esc(d.nearbyPhoto ? `Umgebungsfoto in der Nähe von ${d.name}` : `Foto von ${d.name}`)}">` : `<span class="thumb ph" aria-hidden="true"></span>`}<span class="placeText"><span class="placeBadges">${d.fameId === "local_tip" ? "" : `<span class="tag ${d.fameId === "highlight" ? "known" : ""}">${fameLabel(d)}</span>`}<span class="qualityBadge ${trustClass(d)}">${trustLabel(d)}</span></span><span class="placeTitle">${esc(d.name)}</span><span class="placeMeta">${esc(d.cat)} · ${esc(d.region)}${km}</span></span><span class="arrow" aria-hidden="true">›</span></button>`;
 }
 function render() {
   const a = filtered();
@@ -478,13 +496,21 @@ function focusPin(id) {
 }
 window.focusPin = focusPin;
 function relatedPlaces(d) {
-  return DATA.filter((x) => x.id !== d.id && x.categoryId === d.categoryId)
+  return DATA.filter((x) => x.id !== d.id)
     .map((x) => ({
       x,
       dist: hav(d.lat, d.lon, x.lat, x.lon),
-      rank: x.quality + (x.photo ? 10 : 0),
+      sameCategory: x.categoryId === d.categoryId,
     }))
-    .sort((a, b) => b.rank - a.rank || a.dist - b.dist)
+    .sort((a, b) => {
+      const bucketA = Math.floor(a.dist / 10),
+        bucketB = Math.floor(b.dist / 10);
+      if (bucketA !== bucketB) return bucketA - bucketB;
+      if (a.sameCategory !== b.sameCategory)
+        return Number(b.sameCategory) - Number(a.sameCategory);
+      if (a.dist !== b.dist) return a.dist - b.dist;
+      return b.x.quality - a.x.quality;
+    })
     .slice(0, 3);
 }
 function relatedHtml(d) {
@@ -495,7 +521,7 @@ function relatedHtml(d) {
 }
 function openDetail(id) {
   const d = byId.get(id);
-  detail.innerHTML = `<div class="heroimg">${d.photo ? `<img src="${esc(d.photo)}" referrerpolicy="no-referrer" alt="${esc(d.name)}">` : '<div class="noimg">Kein eindeutig zugeordnetes Bild</div>'}${d.nearbyPhoto ? '<span class="photoTag">Umgebungsfoto ≤ 1,2 km</span>' : ""}<button type="button" class="close" aria-label="Details schließen" data-action="close-detail">Schließen</button></div><div class="detailBody"><div class="detailHeader"><div><span class="tag ${d.fameId === "highlight" ? "known" : ""}">${fameLabel(d)}</span><h1>${esc(d.name)}</h1><div class="meta">${esc(d.cat)} · ${esc(d.region)}</div></div><button type="button" class="saveTop ${favs.has(d.id) ? "active" : ""}" data-fav-id="${d.id}" aria-label="${favs.has(d.id) ? "Ort aus gespeicherten entfernen" : "Ort speichern"}" data-action="toggle-fav" data-id="${d.id}">${favs.has(d.id) ? "Gespeichert" : "Speichern"}</button></div><section class="detailSection"><h2>Warum lohnt sich der Ort?</h2><p class="why">${esc(d.why)}</p></section><section class="detailSection"><h2>Wichtige Hinweise</h2>${d.access ? `<div class="access"><b>Zugang:</b> ${esc(d.access)}</div>` : ""}<div class="note">${esc(d.note)}</div></section><section class="trustBox"><div><h2>Datenvertrauen</h2><span class="qualityBadge ${trustClass(d)}">${trustLabel(d)}</span></div><p>Bewertet die Dokumentation, nicht Schönheit, Sicherheit oder aktuelle Befahrbarkeit.</p>${trustSignals(d)}</section><div class="actions"><a class="primary" href="${esc(d.maps)}" target="_blank" rel="noopener noreferrer">Navigation starten</a><button data-action="add-route" data-id="${d.id}">Zur Route hinzufügen</button><a href="${esc(d.source)}" target="_blank" rel="noopener noreferrer">Datenquelle</a>${d.research ? `<a href="${esc(d.research)}" target="_blank" rel="noopener noreferrer">Recherche</a>` : ""}<a href="${esc(d.commonsSearch)}" target="_blank" rel="noopener noreferrer">Commons-Bilder</a></div>${d.photo ? `<div class="photoCredit"><strong>Bild:</strong> ${esc(d.caption)}<br>${esc(d.artist)} · <a href="${esc(d.licenseUrl)}" target="_blank" rel="noopener noreferrer">${esc(d.license)}</a> · <a href="${esc(d.photoPage)}" target="_blank" rel="noopener noreferrer">Originaldatei</a></div>` : ""}${relatedHtml(d)}</div>`;
+  detail.innerHTML = `<div class="heroimg">${d.photo ? `<img src="${esc(d.photo)}" referrerpolicy="no-referrer" alt="${esc(d.nearbyPhoto ? `Umgebungsfoto in der Nähe von ${d.name}` : `Foto von ${d.name}`)}">` : '<div class="noimg">Kein eindeutig zugeordnetes Bild</div>'}${d.nearbyPhoto ? '<span class="photoTag">Umgebungsfoto ≤ 1,2 km</span>' : ""}<button type="button" class="close" aria-label="Details schließen" data-action="close-detail">Schließen</button></div><div class="detailBody"><div class="detailHeader"><div><span class="tag ${d.fameId === "highlight" ? "known" : ""}">${fameLabel(d)}</span><h1>${esc(d.name)}</h1><div class="meta">${esc(d.cat)} · ${esc(d.region)}</div></div><button type="button" class="saveTop ${favs.has(d.id) ? "active" : ""}" data-fav-id="${d.id}" aria-label="${favs.has(d.id) ? "Ort aus gespeicherten entfernen" : "Ort speichern"}" data-action="toggle-fav" data-id="${d.id}">${favs.has(d.id) ? "Gespeichert" : "Speichern"}</button></div><section class="detailSection"><h2>Warum lohnt sich der Ort?</h2><p class="why">${esc(d.why)}</p></section><section class="detailSection"><h2>Wichtige Hinweise</h2>${d.access ? `<div class="access"><b>Zugang:</b> ${esc(d.access)}</div>` : ""}<div class="note">${esc(d.note)}</div></section><section class="trustBox"><div><h2>Datenvertrauen</h2><span class="qualityBadge ${trustClass(d)}">${trustLabel(d)}</span></div><p>Bewertet die Dokumentation, nicht Schönheit, Sicherheit oder aktuelle Befahrbarkeit.</p>${trustSignals(d)}</section><div class="actions"><a class="primary" href="${esc(d.maps)}" target="_blank" rel="noopener noreferrer">Navigation starten</a><button data-action="add-route" data-id="${d.id}">Zur Route hinzufügen</button><a href="${esc(d.source)}" target="_blank" rel="noopener noreferrer">Datenquelle</a>${d.research ? `<a href="${esc(d.research)}" target="_blank" rel="noopener noreferrer">Recherche</a>` : ""}<a href="${esc(d.commonsSearch)}" target="_blank" rel="noopener noreferrer">Commons-Bilder</a></div>${d.photo ? `<div class="photoCredit"><strong>Bild:</strong> ${esc(d.caption)}<br>${esc(d.artist)} · <a href="${esc(d.licenseUrl)}" target="_blank" rel="noopener noreferrer">${esc(d.license)}</a> · <a href="${esc(d.photoPage)}" target="_blank" rel="noopener noreferrer">Originaldatei</a></div>` : ""}${relatedHtml(d)}</div>`;
   openModal(detail);
 }
 window.closeDetail = () => closeModal(detail);
@@ -582,17 +608,50 @@ function renderTripSuggestions() {
     ? `<h3 class="routeSectionTitle">Empfohlene Stopps entlang der Strecke</h3>${plannedSuggestions.map(card).join("")}`
     : "";
 }
+let routeCalculationToken = 0;
+function clearCalculatedRoute(cancelPending = true) {
+  if (cancelPending) routeCalculationToken++;
+  if (roadTripLine) {
+    map.removeLayer(roadTripLine);
+    roadTripLine = null;
+  }
+  routeSupport.clearLayers();
+  plannedSuggestions = [];
+  tripStart = null;
+  tripEnd = null;
+  const suggestions = document.getElementById("tripSuggestions");
+  if (suggestions) suggestions.innerHTML = "";
+}
 window.planRoadTrip = async () => {
-  tripFrom = document.getElementById("tripFrom").value.trim();
-  tripTo = document.getElementById("tripTo").value.trim();
-  tripCorridor = +document.getElementById("tripCorridor").value;
-  if (!tripFrom || !tripTo) return;
-  const status = document.getElementById("tripStatus");
-  status.textContent = "Route wird berechnet …";
+  const fromInput = document.getElementById("tripFrom"),
+    toInput = document.getElementById("tripTo"),
+    button = document.querySelector('[data-action="plan-roadtrip"]'),
+    status = document.getElementById("tripStatus");
+  tripFrom = fromInput?.value.trim() || "";
+  tripTo = toInput?.value.trim() || "";
+  tripCorridor = +document.getElementById("tripCorridor")?.value || 15;
+  clearCalculatedRoute(false);
+  const token = ++routeCalculationToken;
+  if (!tripFrom || !tripTo) {
+    tripStatusText = "Bitte Start und Ziel eingeben.";
+    if (status) status.textContent = tripStatusText;
+    showToast(tripStatusText);
+    return;
+  }
+  if (button?.disabled) return;
+  if (button) {
+    button.disabled = true;
+    button.setAttribute("aria-busy", "true");
+    button.textContent = "Berechne …";
+  }
+  tripStatusText = "Route wird berechnet …";
+  if (status) status.textContent = tripStatusText;
   try {
-    tripStart = await geocodeNorway(tripFrom);
-    tripEnd = await geocodeNorway(tripTo);
-    const u = `https://router.project-osrm.org/route/v1/driving/${tripStart.lon},${tripStart.lat};${tripEnd.lon},${tripEnd.lat}?overview=full&geometries=geojson&steps=false`;
+    const startPoint = await geocodeNorway(tripFrom);
+    if (token !== routeCalculationToken) return;
+    const endPoint = await geocodeNorway(tripTo);
+    if (token !== routeCalculationToken) return;
+    const u = `https://router.project-osrm.org/route/v1/driving/${startPoint.lon},${startPoint.lat};${endPoint.lon},${endPoint.lat}?overview=full&geometries=geojson&steps=false`;
     let rr;
     try {
       rr = await fetchWithTimeout(u, {}, 20000);
@@ -601,6 +660,7 @@ window.planRoadTrip = async () => {
         "Routenserver momentan nicht erreichbar. Bitte später erneut versuchen.",
       );
     }
+    if (token !== routeCalculationToken) return;
     let rd;
     try {
       rd = await rr.json();
@@ -608,16 +668,16 @@ window.planRoadTrip = async () => {
       throw new Error("Routenserver hat ungültige Daten geliefert.");
     }
     if (!rd.routes?.length) throw new Error("Keine Fahrstrecke gefunden");
+    tripStart = startPoint;
+    tripEnd = endPoint;
     const r = rd.routes[0],
       coords = r.geometry.coordinates,
       step = Math.max(1, Math.floor(coords.length / 260)),
       samples = coords.filter((_, i) => i % step === 0);
     if (samples.at(-1) !== coords.at(-1)) samples.push(coords.at(-1));
-    if (roadTripLine) map.removeLayer(roadTripLine);
     roadTripLine = L.geoJSON(r.geometry, {
       style: { color: "#263b46", weight: 4, opacity: 0.8 },
     }).addTo(map);
-    routeSupport.clearLayers();
     const allCandidates = DATA.map((x) => {
       const n = nearestRouteInfo(x.lat, x.lon, samples);
       return {
@@ -644,8 +704,8 @@ window.planRoadTrip = async () => {
       bin.sort((a, b) => b.rank - a.rank);
       const cats = {};
       for (const v of bin) {
-        if ((cats[v.x.cat] || 0) >= 1) continue;
-        cats[v.x.cat] = (cats[v.x.cat] || 0) + 1;
+        if ((cats[v.x.categoryId] || 0) >= 1) continue;
+        cats[v.x.categoryId] = (cats[v.x.categoryId] || 0) + 1;
         candidates.push(v);
         if (Object.values(cats).reduce((a, b) => a + b, 0) >= 5) break;
       }
@@ -670,15 +730,26 @@ window.planRoadTrip = async () => {
     const cc = {};
     fac.forEach((v) => (cc[v.x.type] = (cc[v.x.type] || 0) + 1));
     tripStatusText = `${(r.distance / 1000).toFixed(0)} km · ${Math.round((r.duration / 3600) * 10) / 10} Std. · ${plannedSuggestions.length} empfohlene Stopps`;
-    status.textContent =
-      tripStatusText +
-      (fac.length
-        ? ` · Versorgung: ${cc.motorhome || 0} Stellplätze, ${cc.water || 0} Wasser, ${cc.toilets || 0} Toiletten`
-        : ``);
+    if (status)
+      status.textContent =
+        tripStatusText +
+        (fac.length
+          ? ` · Versorgung: ${cc.motorhome || 0} Stellplätze, ${cc.water || 0} Wasser, ${cc.toilets || 0} Toiletten`
+          : ``);
     renderTripSuggestions();
     map.fitBounds(roadTripLine.getBounds(), { padding: [35, 35] });
   } catch (e) {
-    status.textContent = e.message;
+    if (token !== routeCalculationToken) return;
+    clearCalculatedRoute(false);
+    tripStatusText = e.message || "Route konnte nicht berechnet werden.";
+    if (status) status.textContent = tripStatusText;
+    showToast(tripStatusText);
+  } finally {
+    if (token === routeCalculationToken && button) {
+      button.disabled = false;
+      button.removeAttribute("aria-busy");
+      button.textContent = "Stopps finden";
+    }
   }
 };
 function renderRoute() {
@@ -686,7 +757,7 @@ function renderRoute() {
     ? `<ol class="routeListSemantic">${route
         .map((id, i) => {
           const d = byId.get(id);
-          return `<li class="routeRow"><span class="num" aria-hidden="true">${i + 1}</span><button type="button" class="routePlace" data-action="open-detail" data-id="${id}"><strong>${esc(d.name)}</strong><small>${esc(d.region)}</small></button><span class="routeControls"><button type="button" data-action="route-move" data-index="${i}" data-direction="-1" aria-label="${esc(d.name)} nach oben verschieben">↑</button><button type="button" data-action="route-move" data-index="${i}" data-direction="1" aria-label="${esc(d.name)} nach unten verschieben">↓</button><button type="button" data-action="route-remove" data-index="${i}" aria-label="${esc(d.name)} aus Route entfernen">×</button></span></li>`;
+          return `<li class="routeRow"><span class="num" aria-hidden="true">${i + 1}</span><button type="button" class="routePlace" data-action="open-detail" data-id="${id}"><strong>${esc(d.name)}</strong><small>${esc(d.region)}</small></button><span class="routeControls"><button type="button" data-action="route-move" data-index="${i}" data-direction="-1" aria-label="${esc(d.name)} nach oben verschieben"><span aria-hidden="true">↑</span> Hoch</button><button type="button" data-action="route-move" data-index="${i}" data-direction="1" aria-label="${esc(d.name)} nach unten verschieben"><span aria-hidden="true">↓</span> Runter</button><button type="button" data-action="route-remove" data-index="${i}" aria-label="${esc(d.name)} aus Route entfernen">Entfernen</button></span></li>`;
         })
         .join("")}</ol>`
     : '<div class="empty compact">Noch keine persönlichen Stopps gespeichert.</div>';
@@ -710,6 +781,10 @@ window.removeStop = (i) => {
   renderRoute();
 };
 window.openRoute = () => {
+  if (route.length > 8)
+    showToast(
+      `Google Maps erhält die ersten 8 Stopps. ${route.length - 8} weitere bleiben in deiner Liste.`,
+    );
   const stops = route.slice(0, 8).map((id) => byId.get(id));
   if (tripStart && tripEnd) {
     const w = stops.map((x) => `${x.lat},${x.lon}`).join("|");
@@ -718,7 +793,10 @@ window.openRoute = () => {
     );
   }
   const a = stops;
-  if (!a.length) return;
+  if (!a.length) {
+    showToast("Noch keine Stopps für den Export gespeichert.");
+    return;
+  }
   if (a.length === 1) return open(a[0].maps);
   const o = a[0],
     z = a.at(-1),
@@ -731,6 +809,11 @@ window.openRoute = () => {
   );
 };
 function setMode(v) {
+  const previous = mode;
+  if (previous === "route" && v !== "route") {
+    clearCalculatedRoute(true);
+    tripStatusText = "";
+  }
   mode = v;
   document
     .querySelectorAll(".nav button")
@@ -955,7 +1038,7 @@ if ("serviceWorker" in navigator && location.protocol.startsWith("http"))
     .register("service-worker.js")
     .catch(() => showToast("Offline-Funktion konnte nicht aktiviert werden."));
 function online() {
-  $("offline").style.display = navigator.onLine ? "none" : "block";
+  $("offline").hidden = navigator.onLine;
 }
 addEventListener("online", online);
 addEventListener("offline", online);

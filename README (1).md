@@ -36,13 +36,20 @@
     <script src="boot.js"></script>
   </head>
   <body>
-    <div id="appError" class="appError" role="alert"></div>
+    <div
+      id="appError"
+      class="appError"
+      role="alert"
+      aria-live="assertive"
+      aria-atomic="true"
+      hidden
+    ></div>
     <main id="map" aria-label="Interaktive Norwegenkarte"></main>
     <header class="top">
       <div class="title">
         <b>Steder i Norge</b
         ><small
-          >1.396 eindeutige Orte · offene Daten · frei lizenzierte Bilder</small
+          >1.393 eindeutige Orte · offene Daten · frei lizenzierte Bilder</small
         >
       </div>
       <button
@@ -66,7 +73,14 @@
         Entdecken
       </button>
     </div>
-    <div class="offline" id="offline">
+    <div
+      class="offline"
+      id="offline"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      hidden
+    >
       Offline · Ortsdaten und Favoriten verfügbar. Karte und Routing benötigen
       Internet.
     </div>
@@ -345,8 +359,8 @@
           bereitgestellt.
         </p>
         <p>
-          <a href="steder_v25_1396.geojson" download>GeoJSON herunterladen</a> ·
-          <a href="steder_v25_1396.csv" download>CSV herunterladen</a>
+          <a href="steder_v25_1393.geojson" download>GeoJSON herunterladen</a> ·
+          <a href="steder_v25_1393.csv" download>CSV herunterladen</a>
         </p>
         <h2>Datenvertrauen</h2>
         <p>

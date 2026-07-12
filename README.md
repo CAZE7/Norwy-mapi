@@ -4,7 +4,7 @@ Statische, mobile-first GitHub-Pages-App für Norwegen-POIs, Naturorte und Campe
 
 ## Funktionsumfang
 
-- 1.396 eindeutige Hauptorte und Koordinaten
+- 1.393 eindeutige Hauptorte und Koordinaten
 - 1.500 optionale Camper- und Versorgungspunkte
 - kombinierte Suche über Namen, Aliasse, Region, Kategorie und Beschreibung
 - gewichtete Relevanzsortierung
@@ -97,7 +97,7 @@ Weitere Informationen: [`TESTING.md`](TESTING.md).
 
 Das Repository kann direkt aus Branch `main` und `/(root)` veröffentlicht werden. Nach dem Deployment:
 
-`https://caze7.github.io/Norwy-mapi/?v=25`
+`https://caze7.github.io/Norwy-mapi/?v=26`
 
 ## Dokumentation
 

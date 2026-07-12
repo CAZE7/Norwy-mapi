@@ -15,7 +15,6 @@
   min-height: 44px;
 }
 .filterBtn,
-.chip,
 .filterChoice,
 .resetFilters {
   min-height: 44px;
@@ -69,7 +68,6 @@
   padding: 0;
 }
 .handle:focus-visible,
-.chip:focus-visible,
 .filterBtn:focus-visible,
 .nav button:focus-visible,
 .actions a:focus-visible,
@@ -111,4 +109,40 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }
+}
+/* Readability refinements */
+:root {
+  --muted: #59635d;
+}
+.search::placeholder {
+  color: #5f6862;
+  opacity: 1;
+}
+.nav button {
+  color: #59635d;
+}
+.handle {
+  min-height: 48px;
+  cursor: pointer;
+}
+.handle::before {
+  width: 52px;
+  height: 4px;
+  background: #7d8780;
+}
+.photoTag,
+.utilityPopup .uMeta,
+.legalInner .eyebrow,
+.layerInner label span,
+.routePlanner label,
+.num {
+  font-size: 12px;
+}
+.meta,
+.note,
+.access,
+.photoCredit,
+.filterSummary,
+.toolBtn {
+  color: #515b55;
 }

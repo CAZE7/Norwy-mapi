@@ -1,89 +1,56 @@
 #!/usr/bin/env python3
-"""One-off deterministic cleanup used for release v25.
-
-Keeps source IDs/coordinates, removes one generic placeholder and normalizes
-human-facing labels, aliases, credits and trust labels.
-"""
-import csv, html, json, pathlib, re
+"""Merge only manually reviewed semantic duplicates from the v25 audit."""
+import csv, json, pathlib
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-p = ROOT / 'places-data.js'
+p = ROOT/'places-data.js'
 s = p.read_text()
 data = json.loads(s[len('window.PLACES='):-2])
-rename = {
-    'On lake': 'Aussicht am See bei Å',
-    'Parking Viewpoint Mountain Segla': 'Segla – Aussichtspunkt am Parkplatz',
-    'Myfallet Middle Viewpoint (unofficial, best view)': 'Myfallet – mittlerer Aussichtspunkt',
-    'Viewpoint Henrikkafosen': 'Henrikkafosen – Aussichtspunkt',
-    'Viewpoint Snøhetta': 'Snøhetta-Aussichtspunkt',
-    'Lysebotn Aussicht': 'Lysebotn-Aussichtspunkt',
+merges = {
+    'Langfoss – Etne': 'Langfoss',
+    'Geopark Mølen': 'Mølen',
+    'Briksdalsbreen (Briksdal glacier)': 'Briksdalsbreen',
 }
-remove = {'Waterfall'}
-penalty_cap = {
-    'Aussicht am See bei Å': 45,
-    'Segla – Aussichtspunkt am Parkplatz': 65,
-    'Myfallet – mittlerer Aussichtspunkt': 60,
-    'Henrikkafosen – Aussichtspunkt': 60,
+renames = {
+    'Myfallet - Bottom Viewpoint': 'Myfallet – unterer Aussichtspunkt',
+    'Myfallet - Top Viewpoint': 'Myfallet – oberer Aussichtspunkt',
 }
-def clean_text(value, limit=260):
-    value = html.unescape(re.sub(r'<[^>]+>', ' ', str(value or '')))
-    value = re.sub(r'\s+', ' ', value).strip()
-    value = re.sub(r'^Foto aus der unmittelbaren Umgebung \(nicht zwingend das exakte Motiv\):\s*', '', value, flags=re.I)
-    return value[:limit].rstrip()
-def trust_label(score):
-    if score >= 78: return 'Gut dokumentiert'
-    if score >= 58: return 'Teilweise geprüft'
-    return 'Vor Ort prüfen'
-out = []
-for item in data:
-    if item['name'] in remove:
+by_name = {x['name']:x for x in data}
+remove = set()
+for duplicate, canonical in merges.items():
+    if duplicate not in by_name or canonical not in by_name:
         continue
-    old_name = item['name']
-    item['name'] = rename.get(old_name, old_name)
-    if old_name != item['name'] and old_name not in item['aliases']:
-        item['aliases'].append(old_name)
-    aliases = []
-    for alias in item.get('aliases', []):
-        alias = clean_text(alias, 120)
-        alias_cleanup = {
-            'viewpoint bergsbotn': 'Bergsbotn-Aussichtspunkt',
-            'on lake – å': 'Aussicht am See bei Å',
-            'on lake': 'Am See bei Å',
-            'parking viewpoint mountain segla': 'Segla Parkplatz-Aussicht',
-            'myfallet middle viewpoint (unofficial, best view)': 'Myfallet mittlerer Aussichtspunkt',
-            'viewpoint henrikkafosen': 'Henrikkafosen Aussichtspunkt',
-            'viewpoint snøhetta': 'Snøhetta Aussicht',
-            'lysebotn aussicht – sandnes': 'Lysebotn-Aussicht bei Sandnes',
-            'lysebotn aussicht': 'Lysebotn-Aussicht',
-        }
-        alias = alias_cleanup.get(alias.lower(), alias)
-        if alias and alias.casefold() != item['name'].casefold() and alias.casefold() not in {a.casefold() for a in aliases}:
-            aliases.append(alias)
-    item['aliases'] = aliases
-    if item['name'] in penalty_cap:
-        item['quality'] = min(item['quality'], penalty_cap[item['name']])
-    item['qualityLabel'] = trust_label(item['quality'])
-    item['caption'] = clean_text(item.get('caption'), 220)
-    item['artist'] = clean_text(item.get('artist'), 140)
-    if old_name == 'On lake':
-        # The previous image referred to Lake Winnipeg in Canada and was not relevant.
-        for key in ['photo','photoPage','caption','artist','license','licenseUrl']:
-            item[key] = ''
-        item['nearbyPhoto'] = False
-    item['commonsSearch'] = 'https://commons.wikimedia.org/w/index.php?search=' + item['name'].replace(' ', '%20') + '%20Norway&title=Special:MediaSearch&type=image'
-    item['id'] = len(out)
-    out.append(item)
-assert len(out) == 1396
-assert len({(x['lat'], x['lon']) for x in out}) == len(out)
-assert len({x['name'].casefold() for x in out}) == len(out)
-p.write_text('window.PLACES=' + json.dumps(out, ensure_ascii=False, separators=(',', ':')) + ';\n')
-fields = ['id','name','aliases','latitude','longitude','category_id','category_de','group_id','fame_id','region','description','note','access','quality','quality_label','source','research','photo_page','photo_author','photo_license','photo_license_url','merged_records']
-rows = []
-for x in out:
+    source, target = by_name[duplicate], by_name[canonical]
+    remove.add(duplicate)
+    for alias in [source['name'], *source.get('aliases', [])]:
+        if alias.casefold() != target['name'].casefold() and alias.casefold() not in {x.casefold() for x in target['aliases']}:
+            target['aliases'].append(alias)
+    target['mergedRecords'] = target.get('mergedRecords',1) + source.get('mergedRecords',1)
+    if source['quality'] > target['quality']:
+        target['quality'] = source['quality']
+    if not target.get('photo') and source.get('photo'):
+        for key in ['photo','photoPage','caption','artist','license','licenseUrl','nearbyPhoto']:
+            target[key] = source.get(key,'')
+for item in data:
+    if item['name'] in renames:
+        old = item['name']; item['name'] = renames[old]
+        clean_alias = old.replace(' - Bottom Viewpoint',' unterer Aussichtspunkt').replace(' - Top Viewpoint',' oberer Aussichtspunkt')
+        if clean_alias.casefold() != item['name'].casefold() and clean_alias not in item['aliases']:
+            item['aliases'].append(clean_alias)
+data = [x for x in data if x['name'] not in remove]
+def trust(score): return 'Gut dokumentiert' if score >= 78 else 'Teilweise geprüft' if score >= 58 else 'Vor Ort prüfen'
+for i,item in enumerate(data):
+    item['id']=i;item['qualityLabel']=trust(item['quality'])
+assert len(data)==1393
+assert len({(x['lat'],x['lon']) for x in data})==1393
+assert len({x['name'].casefold() for x in data})==1393
+p.write_text('window.PLACES='+json.dumps(data,ensure_ascii=False,separators=(',',':'))+';\n')
+for old in ROOT.glob('steder_v25_1393.*'): old.unlink()
+fields=['id','name','aliases','latitude','longitude','category_id','category_de','group_id','fame_id','region','description','note','access','quality','quality_label','source','research','photo_page','photo_author','photo_license','photo_license_url','merged_records']
+rows=[]
+for x in data:
     rows.append({'id':x['id'],'name':x['name'],'aliases':' | '.join(x['aliases']),'latitude':x['lat'],'longitude':x['lon'],'category_id':x['categoryId'],'category_de':x['categoryLabel'],'group_id':x['groupId'],'fame_id':x['fameId'],'region':x['region'],'description':x['why'],'note':x['note'],'access':x['access'],'quality':x['quality'],'quality_label':x['qualityLabel'],'source':x['source'],'research':x['research'],'photo_page':x['photoPage'],'photo_author':x['artist'],'photo_license':x['license'],'photo_license_url':x['licenseUrl'],'merged_records':x['mergedRecords']})
-for old in ROOT.glob('steder_v25_1396.*'):
-    old.unlink()
-with open(ROOT/'steder_v25_1396.csv','w',encoding='utf-8-sig',newline='') as f:
+with open(ROOT/'steder_v25_1393.csv','w',encoding='utf-8-sig',newline='') as f:
     writer=csv.DictWriter(f,fieldnames=fields);writer.writeheader();writer.writerows(rows)
 features=[{'type':'Feature','geometry':{'type':'Point','coordinates':[r['longitude'],r['latitude']]},'properties':{k:v for k,v in r.items() if k not in ('latitude','longitude')}} for r in rows]
-(ROOT/'steder_v25_1396.geojson').write_text(json.dumps({'type':'FeatureCollection','name':'Steder i Norge – bereinigte öffentliche Datenbank','license':'ODbL-1.0','attribution':'Contains information from OpenStreetMap, available under ODbL 1.0','features':features},ensure_ascii=False,separators=(',',':')))
-print('cleaned display data:', len(out))
+(ROOT/'steder_v25_1393.geojson').write_text(json.dumps({'type':'FeatureCollection','name':'Steder i Norge – bereinigte öffentliche Datenbank','license':'ODbL-1.0','attribution':'Contains information from OpenStreetMap, available under ODbL 1.0','features':features},ensure_ascii=False,separators=(',',':')))
+print('targeted duplicate merge complete:',len(data))

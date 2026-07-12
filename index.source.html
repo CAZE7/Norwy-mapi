@@ -1,7 +1,7 @@
 function showBootError(message) {
   const box = document.getElementById("appError");
   if (!box) return;
-  box.style.display = "block";
+  box.hidden = false;
   box.textContent = message;
 }
 

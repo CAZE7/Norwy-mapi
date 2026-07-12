@@ -1,86 +1,89 @@
-const { test, expect, devices } = require('@playwright/test');
-const { AxeBuilder } = require('@axe-core/playwright');
-const base = process.env.BASE_URL || 'http://127.0.0.1:8000/';
+#!/usr/bin/env python3
+"""One-off deterministic cleanup used for release v25.
 
-test.use({ ...devices['Pixel 7'], geolocation: { latitude: 60, longitude: 9 }, permissions: ['geolocation'] });
-
-test('loads unique data and has no accessibility violations', async ({ page }) => {
-  const errors = [];
-  page.on('pageerror', error => errors.push(String(error)));
-  await page.goto(base, { waitUntil: 'networkidle' });
-  const audit = await page.evaluate(async () => ({
-    places: PLACES.length,
-    coordinates: new Set(PLACES.map(x => `${x.lat},${x.lon}`)).size,
-    camper: CAMPER_DATA.length,
-    worker: !!(await navigator.serviceWorker.ready).active
-  }));
-  expect(audit).toEqual({ places: 1396, coordinates: 1396, camper: 1500, worker: true });
-  await expect(page.locator('#map')).toBeVisible();
-  await expect(page.locator('#search')).toBeVisible();
-  await expect(page.locator('.leaflet-marker-icon').first()).toBeVisible();
-  const axe = await new AxeBuilder({ page }).analyze();
-  expect(axe.violations).toEqual([]);
-  expect(errors).toEqual([]);
-});
-
-test('combined search and category filters work', async ({ page }) => {
-  await page.goto(base, { waitUntil: 'networkidle' });
-  await page.fill('#search', 'Trolltunga');
-  await page.waitForTimeout(150);
-  expect(await page.locator('.placeTitle').first().textContent()).toBe('Trolltunga');
-  expect(await page.locator('.place').first().evaluate(el => el.tagName)).toBe('BUTTON');
-  await page.fill('#search', 'Uttakleivstranda');
-  await page.waitForTimeout(150);
-  expect(await page.locator('.placeTitle').first().textContent()).toBe('Uttakleiv');
-  await page.fill('#search', '');
-  await page.locator('#filterToggle').click();
-  await page.locator('[data-category-filter="waterfall"]').click();
-  expect(await page.evaluate(() => filtered().every(x => x.categoryId === 'waterfall'))).toBe(true);
-  await page.locator('#filterQuality').check();
-  expect(await page.evaluate(() => filtered().every(x => x.quality >= 78))).toBe(true);
-  await page.locator('#filterLocal').check();
-  expect(await page.evaluate(() => filtered().every(x => x.fameId === 'local_tip' && x.quality >= 78))).toBe(true);
-  await page.locator('#filterDiscovery').check();
-  expect(await page.evaluate(() => filtered().every(x => ['local_tip','discovery'].includes(x.fameId) && x.quality >= 78))).toBe(true);
-  await expect(page.locator('.activeFilter')).toHaveCount(4);
-  await page.locator('.activeFilter').filter({ hasText: 'Wasserfälle' }).click();
-  expect(await page.evaluate(() => filtered().every(x => ['local_tip','discovery'].includes(x.fameId) && x.quality >= 78))).toBe(true);
-  const axe = await new AxeBuilder({ page }).analyze();
-  expect(axe.violations).toEqual([]);
-});
-
-test('detail hierarchy and data trust are visible', async ({ page }) => {
-  await page.goto(base, { waitUntil: 'networkidle' });
-  await page.fill('#search', 'Trolltunga');
-  await page.waitForTimeout(150);
-  await page.locator('.place').first().click();
-  await expect(page.locator('#detail')).toHaveClass(/open/);
-  await expect(page.locator('#detail h2').filter({ hasText: 'Warum lohnt sich' })).toBeVisible();
-  await expect(page.locator('#detail h2').filter({ hasText: 'Wichtige Hinweise' })).toBeVisible();
-  await expect(page.locator('#detail h2').filter({ hasText: 'Datenvertrauen' })).toBeVisible();
-  await expect(page.locator('#detail .actions .primary')).toHaveText('Navigation starten');
-  await expect(page.locator('#detail .saveTop')).toBeVisible();
-  await expect(page.locator('#detail .related')).toContainText('km');
-  await page.locator('#detail .saveTop').click();
-  await expect(page.locator('#detail .saveTop')).toHaveText('Gespeichert');
-});
-
-test('route planner and dialogs work', async ({ page }) => {
-  await page.goto(base, { waitUntil: 'networkidle' });
-  await page.locator('.nav button[data-view="route"]').click();
-  await page.fill('#tripFrom', 'Oslo');
-  await page.fill('#tripTo', 'Bergen');
-  await page.getByRole('button', { name: 'Stopps finden' }).click();
-  await expect(page.locator('#tripStatus')).toContainText('km', { timeout: 40000 });
-  await page.evaluate(() => {
-    route = PLACES.slice(0, 10).map(x => x.id);
-    renderRoute();
-  });
-  await expect(page.locator('.routeListSemantic')).toHaveCount(1);
-  await expect(page.locator('.routeLimit.warning')).toContainText('maximal 8');
-  expect(await page.locator('.routeControls button').count()).toBe(30);
-  await page.locator('#legalButton').click();
-  await expect(page.locator('#legal')).toHaveClass(/open/);
-  await page.keyboard.press('Escape');
-  await expect(page.locator('#legal')).not.toHaveClass(/open/);
-});
+Keeps source IDs/coordinates, removes one generic placeholder and normalizes
+human-facing labels, aliases, credits and trust labels.
+"""
+import csv, html, json, pathlib, re
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+p = ROOT / 'places-data.js'
+s = p.read_text()
+data = json.loads(s[len('window.PLACES='):-2])
+rename = {
+    'On lake': 'Aussicht am See bei Å',
+    'Parking Viewpoint Mountain Segla': 'Segla – Aussichtspunkt am Parkplatz',
+    'Myfallet Middle Viewpoint (unofficial, best view)': 'Myfallet – mittlerer Aussichtspunkt',
+    'Viewpoint Henrikkafosen': 'Henrikkafosen – Aussichtspunkt',
+    'Viewpoint Snøhetta': 'Snøhetta-Aussichtspunkt',
+    'Lysebotn Aussicht': 'Lysebotn-Aussichtspunkt',
+}
+remove = {'Waterfall'}
+penalty_cap = {
+    'Aussicht am See bei Å': 45,
+    'Segla – Aussichtspunkt am Parkplatz': 65,
+    'Myfallet – mittlerer Aussichtspunkt': 60,
+    'Henrikkafosen – Aussichtspunkt': 60,
+}
+def clean_text(value, limit=260):
+    value = html.unescape(re.sub(r'<[^>]+>', ' ', str(value or '')))
+    value = re.sub(r'\s+', ' ', value).strip()
+    value = re.sub(r'^Foto aus der unmittelbaren Umgebung \(nicht zwingend das exakte Motiv\):\s*', '', value, flags=re.I)
+    return value[:limit].rstrip()
+def trust_label(score):
+    if score >= 78: return 'Gut dokumentiert'
+    if score >= 58: return 'Teilweise geprüft'
+    return 'Vor Ort prüfen'
+out = []
+for item in data:
+    if item['name'] in remove:
+        continue
+    old_name = item['name']
+    item['name'] = rename.get(old_name, old_name)
+    if old_name != item['name'] and old_name not in item['aliases']:
+        item['aliases'].append(old_name)
+    aliases = []
+    for alias in item.get('aliases', []):
+        alias = clean_text(alias, 120)
+        alias_cleanup = {
+            'viewpoint bergsbotn': 'Bergsbotn-Aussichtspunkt',
+            'on lake – å': 'Aussicht am See bei Å',
+            'on lake': 'Am See bei Å',
+            'parking viewpoint mountain segla': 'Segla Parkplatz-Aussicht',
+            'myfallet middle viewpoint (unofficial, best view)': 'Myfallet mittlerer Aussichtspunkt',
+            'viewpoint henrikkafosen': 'Henrikkafosen Aussichtspunkt',
+            'viewpoint snøhetta': 'Snøhetta Aussicht',
+            'lysebotn aussicht – sandnes': 'Lysebotn-Aussicht bei Sandnes',
+            'lysebotn aussicht': 'Lysebotn-Aussicht',
+        }
+        alias = alias_cleanup.get(alias.lower(), alias)
+        if alias and alias.casefold() != item['name'].casefold() and alias.casefold() not in {a.casefold() for a in aliases}:
+            aliases.append(alias)
+    item['aliases'] = aliases
+    if item['name'] in penalty_cap:
+        item['quality'] = min(item['quality'], penalty_cap[item['name']])
+    item['qualityLabel'] = trust_label(item['quality'])
+    item['caption'] = clean_text(item.get('caption'), 220)
+    item['artist'] = clean_text(item.get('artist'), 140)
+    if old_name == 'On lake':
+        # The previous image referred to Lake Winnipeg in Canada and was not relevant.
+        for key in ['photo','photoPage','caption','artist','license','licenseUrl']:
+            item[key] = ''
+        item['nearbyPhoto'] = False
+    item['commonsSearch'] = 'https://commons.wikimedia.org/w/index.php?search=' + item['name'].replace(' ', '%20') + '%20Norway&title=Special:MediaSearch&type=image'
+    item['id'] = len(out)
+    out.append(item)
+assert len(out) == 1393
+assert len({(x['lat'], x['lon']) for x in out}) == len(out)
+assert len({x['name'].casefold() for x in out}) == len(out)
+p.write_text('window.PLACES=' + json.dumps(out, ensure_ascii=False, separators=(',', ':')) + ';\n')
+fields = ['id','name','aliases','latitude','longitude','category_id','category_de','group_id','fame_id','region','description','note','access','quality','quality_label','source','research','photo_page','photo_author','photo_license','photo_license_url','merged_records']
+rows = []
+for x in out:
+    rows.append({'id':x['id'],'name':x['name'],'aliases':' | '.join(x['aliases']),'latitude':x['lat'],'longitude':x['lon'],'category_id':x['categoryId'],'category_de':x['categoryLabel'],'group_id':x['groupId'],'fame_id':x['fameId'],'region':x['region'],'description':x['why'],'note':x['note'],'access':x['access'],'quality':x['quality'],'quality_label':x['qualityLabel'],'source':x['source'],'research':x['research'],'photo_page':x['photoPage'],'photo_author':x['artist'],'photo_license':x['license'],'photo_license_url':x['licenseUrl'],'merged_records':x['mergedRecords']})
+for old in ROOT.glob('steder_v25_1393.*'):
+    old.unlink()
+with open(ROOT/'steder_v25_1393.csv','w',encoding='utf-8-sig',newline='') as f:
+    writer=csv.DictWriter(f,fieldnames=fields);writer.writeheader();writer.writerows(rows)
+features=[{'type':'Feature','geometry':{'type':'Point','coordinates':[r['longitude'],r['latitude']]},'properties':{k:v for k,v in r.items() if k not in ('latitude','longitude')}} for r in rows]
+(ROOT/'steder_v25_1393.geojson').write_text(json.dumps({'type':'FeatureCollection','name':'Steder i Norge – bereinigte öffentliche Datenbank','license':'ODbL-1.0','attribution':'Contains information from OpenStreetMap, available under ODbL 1.0','features':features},ensure_ascii=False,separators=(',',':')))
+print('cleaned display data:', len(out))
