@@ -1,9 +1,9 @@
 // Service Worker für Norwy-mapi
-// Version 26.1 - Konservatives Caching für kritische Dateien
+// Version 26.2.1 - Konservatives Caching für kritische Dateien
 
-const CACHE_VERSION = 'norwy-v26.2';
-const CRITICAL_CACHE = 'norwy-critical-v26.2';
-const DATA_CACHE = 'norwy-data-v26.2';
+const CACHE_VERSION = 'norwy-v26.2.1';
+const CRITICAL_CACHE = 'norwy-critical-v26.2.1';
+const DATA_CACHE = 'norwy-data-v26.2.1';
 
 // Kritische App-Dateien (werden immer gecacht)
 const CRITICAL_FILES = [

@@ -15,10 +15,10 @@
     crossorigin="">
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
-  <link rel="stylesheet" href="app.css">
-  <link rel="stylesheet" href="a11y-overrides.css">
+  <link rel="stylesheet" href="app.css?v=26.2.1">
+  <link rel="stylesheet" href="a11y-overrides.css?v=26.2.1">
   
-  <link rel="manifest" href="manifest.json">
+  <link rel="manifest" href="manifest.json?v=26.2.1">
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
   <link rel="apple-touch-icon" href="icon-192.png">
 </head>
@@ -90,11 +90,11 @@
     </button>
   </nav>
 
-  <div id="detail" class="detail" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="detailTitle" tabindex="-1">
+  <div id="detail" hidden class="detail" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="detailTitle" tabindex="-1">
     <!-- Wird dynamisch gefüllt -->
   </div>
 
-  <div id="legal" class="legal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="legalTitle" tabindex="-1">
+  <div id="legal" hidden class="legal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="legalTitle" tabindex="-1">
     <button class="legalClose" onclick="closeModal(document.getElementById('legal'))" aria-label="Schließen">
       Schließen
     </button>
@@ -144,7 +144,7 @@
     </div>
   </div>
 
-  <div id="layerPanel" class="layerPanel" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="layerTitle" tabindex="-1">
+  <div id="layerPanel" hidden class="layerPanel" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="layerTitle" tabindex="-1">
     <button class="legalClose" onclick="closeModal(document.getElementById('layerPanel'))" aria-label="Schließen">
       Schließen
     </button>
@@ -208,18 +208,18 @@
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   
   <!-- Daten -->
-  <script src="places-data.js"></script>
-  <script src="camper_layers.js"></script>
+  <script src="places-data.js?v=26.2.1"></script>
+  <script src="camper_layers.js?v=26.2.1"></script>
   
   <!-- App -->
-  <script src="boot.js"></script>
-  <script src="app.js"></script>
+  <script src="boot.js?v=26.2.1"></script>
+  <script src="app.js?v=26.2.1"></script>
   
   <!-- Service Worker Registration -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
-        navigator.serviceWorker.register('sw.js')
+        navigator.serviceWorker.register('sw.js?v=26.2.1')
           .then(function(registration) {
             console.log('Service Worker registriert:', registration.scope);
             

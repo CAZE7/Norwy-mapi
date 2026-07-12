@@ -1,6 +1,6 @@
 {
   "name": "norwy-mapi",
-  "version": "26.2.0",
+  "version": "26.2.1",
   "private": true,
   "description": "Statische Leaflet-Web-App für Norwegen-POIs und Camper-Infrastruktur",
   "scripts": {
