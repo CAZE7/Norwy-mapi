@@ -22,8 +22,8 @@ manifest.webmanifest
 service-worker.js
 icon-192.png
 icon-512.png
-steder_v23_1397.csv
-steder_v23_1397.geojson
+steder_v25_1396.csv
+steder_v25_1396.geojson
 camper_layers.geojson
 ```
 

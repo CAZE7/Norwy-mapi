@@ -26,70 +26,23 @@
     <link rel="apple-touch-icon" href="icon-192.png" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.tile.openstreetmap.org https://upload.wikimedia.org https://wms.geonorge.no; connect-src 'self' https://nominatim.openstreetmap.org https://router.project-osrm.org https://wms.geonorge.no https://*.tile.openstreetmap.org https://upload.wikimedia.org; manifest-src 'self'; worker-src 'self' blob:;"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; style-src-attr 'unsafe-inline'; img-src 'self' data: blob: https://*.tile.openstreetmap.org https://upload.wikimedia.org https://wms.geonorge.no; connect-src 'self' https://nominatim.openstreetmap.org https://router.project-osrm.org https://wms.geonorge.no https://*.tile.openstreetmap.org https://upload.wikimedia.org; manifest-src 'self'; worker-src 'self' blob:;"
     />
     <link rel="stylesheet" href="leaflet.css" />
     <link rel="stylesheet" href="MarkerCluster.css" />
     <link rel="stylesheet" href="MarkerCluster.Default.css" />
     <link rel="stylesheet" href="app.css" />
     <link rel="stylesheet" href="a11y-overrides.css" />
-    <script>
-      function showBootError(message) {
-        var b = document.getElementById("appError");
-        if (b) {
-          b.style.display = "block";
-          b.textContent = message;
-        }
-      }
-      window.addEventListener(
-        "error",
-        function (e) {
-          if (e.target && e.target !== window) {
-            var u = e.target.src || e.target.href || "";
-            var f = u.split("/").pop() || "Ressource";
-            var m = f.includes("places-data")
-              ? "Ortsdaten konnten nicht geladen werden."
-              : f.includes("camper_layers")
-                ? "Camper-Ebene fehlt. Die Hauptkarte kann weiter genutzt werden."
-                : "Datei konnte nicht geladen werden: " + f;
-            showBootError(m);
-            return;
-          }
-          showBootError("Startfehler: " + (e.message || "unbekannt"));
-        },
-        true,
-      );
-      window.addEventListener("unhandledrejection", function (e) {
-        showBootError(
-          "Ein Dienst oder Datensatz konnte nicht geladen werden: " +
-            (e.reason?.message || e.reason || "unbekannter Fehler"),
-        );
-      });
-    </script>
+    <script src="boot.js"></script>
   </head>
   <body>
-    <div
-      id="appError"
-      style="
-        display: none;
-        position: fixed;
-        z-index: 9999;
-        left: 12px;
-        right: 12px;
-        top: 82px;
-        padding: 14px;
-        background: #efe2ca;
-        color: #633b22;
-        border: 1px solid #c8aa83;
-        font: 12px Arial;
-      "
-    ></div>
+    <div id="appError" class="appError" role="alert"></div>
     <main id="map" aria-label="Interaktive Norwegenkarte"></main>
     <header class="top">
       <div class="title">
         <b>Steder i Norge</b
         ><small
-          >1.397 eindeutige Orte · offene Daten · frei lizenzierte Bilder</small
+          >1.396 eindeutige Orte · offene Daten · frei lizenzierte Bilder</small
         >
       </div>
       <button
@@ -99,12 +52,19 @@
         aria-expanded="false"
         aria-controls="legal"
       >
-        i
+        Info
       </button>
     </header>
     <div class="float">
-      <button id="locate" aria-label="Standort">◎</button
-      ><button class="secret" id="random" aria-label="Zufälliger Ort">↻</button>
+      <button id="locate" aria-label="Eigenen Standort verwenden">
+        Standort</button
+      ><button
+        class="secret"
+        id="random"
+        aria-label="Zufälligen lokalen Tipp anzeigen"
+      >
+        Entdecken
+      </button>
     </div>
     <div class="offline" id="offline">
       Offline · Ortsdaten und Favoriten verfügbar. Karte und Routing benötigen
@@ -385,8 +345,8 @@
           bereitgestellt.
         </p>
         <p>
-          <a href="steder_v23_1397.geojson" download>GeoJSON herunterladen</a> ·
-          <a href="steder_v23_1397.csv" download>CSV herunterladen</a>
+          <a href="steder_v25_1396.geojson" download>GeoJSON herunterladen</a> ·
+          <a href="steder_v25_1396.csv" download>CSV herunterladen</a>
         </p>
         <h2>Datenvertrauen</h2>
         <p>

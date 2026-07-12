@@ -1,5 +1,5 @@
 const CACHE='norwy-production-v25';
-const APP=['./','index.html','app.css','a11y-overrides.css','app.js','places-data.js','camper_layers.js','leaflet.css','leaflet.js','leaflet.markercluster.js','MarkerCluster.css','MarkerCluster.Default.css','manifest.webmanifest','icon-192.png','icon-512.png'];
+const APP=['./','index.html','boot.js','app.css','a11y-overrides.css','app.js','places-data.js','camper_layers.js','leaflet.css','leaflet.js','leaflet.markercluster.js','MarkerCluster.css','MarkerCluster.Default.css','manifest.webmanifest','icon-192.png','icon-512.png'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(APP)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
 self.addEventListener('fetch',event=>{

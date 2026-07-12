@@ -4,7 +4,7 @@ Statische, mobile-first GitHub-Pages-App für Norwegen-POIs, Naturorte und Campe
 
 ## Funktionsumfang
 
-- 1.397 eindeutige Hauptorte und Koordinaten
+- 1.396 eindeutige Hauptorte und Koordinaten
 - 1.500 optionale Camper- und Versorgungspunkte
 - kombinierte Suche über Namen, Aliasse, Region, Kategorie und Beschreibung
 - gewichtete Relevanzsortierung

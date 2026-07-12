@@ -43,7 +43,7 @@ Während `npm run serve` in einem Terminal läuft, in einem zweiten Terminal:
 npm run test:e2e
 ```
 
-Getestet werden Initial Load, 1.397 eindeutige Orte, 1.500 Camper-Punkte, sichtbare Karte und Suche, kombinierte Suche, Alias-Suche, Kategorienfilter, Qualitätsfilter, Routenplanung, Dialogsteuerung und Axe Accessibility.
+Getestet werden Initial Load, 1.396 eindeutige Orte, 1.500 Camper-Punkte, sichtbare Karte und Suche, kombinierte Suche, Alias-Suche, Kategorienfilter, Qualitätsfilter, Routenplanung, Dialogsteuerung und Axe Accessibility.
 
 Die veröffentlichte Seite kann so geprüft werden:
 

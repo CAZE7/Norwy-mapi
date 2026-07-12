@@ -49,16 +49,25 @@
 ## Datenqualität
 
 - 601 Dubletten zusammengeführt.
-- zwei offensichtlich fehlerhafte Datensätze entfernt.
-- 1.397 eindeutige Namen und Koordinaten.
+- drei offensichtlich fehlerhafte Datensätze entfernt.
+- 1.396 eindeutige Namen und Koordinaten.
 - stabile `category_id`, `group_id` und `fame_id`.
 - frühere Namen bleiben als Aliasse erhalten.
 - häufige norwegische Standardtexte in der deutschen Oberfläche vereinheitlicht.
+- rohe Platzhalternamen wie `On lake`, `Parking Viewpoint…` und `Waterfall` bereinigt oder entfernt.
+- falsche Bildzuordnung zu „On lake“ entfernt.
+- Bildtitel und Credit-Felder von HTML, Newlines und Boilerplate bereinigt.
+- Qualitätslabels aus dem numerischen Score konsistent neu abgeleitet.
 
 ## Accessibility und Sicherheit
 
 - Zoomsperre entfernt.
 - größere Schrift und Touch-Ziele.
 - Labels, Dialogsemantik, Fokusführung, Escape und Fokusfalle.
-- Content Security Policy und sichere externe Links.
+- klickbare Karten und Routensteuerung auf semantische Buttons umgestellt.
+- Inline-Event-Handler entfernt und zentrale Event-Delegation ergänzt.
+- Content Security Policy ohne `unsafe-inline` für JavaScript.
+- sichere externe Links.
+- Geolocation-Fehler als UI-Toast statt `alert()`.
+- sichtbarer Hinweis auf das Google-Maps-Limit von 8 Zwischenstopps.
 - Axe-Audit ohne Verstöße.

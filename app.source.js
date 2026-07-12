@@ -1031,3 +1031,160 @@ input {
 .related button small {
   font-size: 11px;
 }
+/* Semantic controls and CSP-safe marker colors. Merged into app.css. */
+.appError {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  left: 12px;
+  right: 12px;
+  top: 82px;
+  padding: 14px;
+  background: #efe2ca;
+  color: #633b22;
+  border: 1px solid #c8aa83;
+  font:
+    14px/1.4 Arial,
+    sans-serif;
+}
+.place {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+}
+.placeText {
+  display: block;
+  min-width: 0;
+}
+.placeBadges {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.placeTitle {
+  display: block;
+  font:
+    normal 18px/1.08 Georgia,
+    "Times New Roman",
+    serif;
+  margin: 4px 0 5px;
+}
+.placeMeta {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.3;
+}
+.pin-water {
+  background: #365f70;
+}
+.pin-view {
+  background: #435949;
+}
+.pin-nature {
+  background: #405b49;
+}
+.pin-mountain {
+  background: #515a4b;
+}
+.pin-coast {
+  background: #326b73;
+}
+.pin-geology {
+  background: #795c49;
+}
+.pin-roadtrip {
+  background: #6e6756;
+}
+.pin-food {
+  background: #8a5d46;
+}
+.utility-motorhome {
+  background: #3f5e73;
+}
+.utility-camping {
+  background: #526b4f;
+}
+.utility-water {
+  background: #287a92;
+}
+.utility-toilets {
+  background: #6c6575;
+}
+.utility-ferry {
+  background: #9a5b42;
+}
+.utility-dump {
+  background: #73533f;
+}
+.routeListSemantic {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.routePlace {
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  color: inherit;
+  padding: 8px 4px;
+}
+.routePlace strong,
+.routePlace small {
+  display: block;
+}
+.routePlace small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.routeControls {
+  display: flex;
+  gap: 4px;
+}
+.routeControls button {
+  min-width: 44px;
+  min-height: 44px;
+  margin: 0;
+}
+.routeLimit {
+  margin: 8px 7px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.routeLimit.warning {
+  color: #7a5135;
+  font-weight: bold;
+}
+.circle {
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.float button {
+  width: auto;
+  min-width: 72px;
+  height: 44px;
+  padding: 0 10px;
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.close {
+  width: auto;
+  min-width: 44px;
+  padding: 0 12px;
+  font:
+    600 11px Arial,
+    sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
