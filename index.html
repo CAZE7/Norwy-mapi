@@ -208,8 +208,8 @@
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   
   <!-- Daten -->
-  <script src="data/places-data.js"></script>
-  <script src="data/camper_layers.js"></script>
+  <script src="places-data.js"></script>
+  <script src="camper_layers.js"></script>
   
   <!-- App -->
   <script src="boot.js"></script>
@@ -219,7 +219,7 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function() {
-        navigator.serviceWorker.register('/sw.js')
+        navigator.serviceWorker.register('sw.js')
           .then(function(registration) {
             console.log('Service Worker registriert:', registration.scope);
             

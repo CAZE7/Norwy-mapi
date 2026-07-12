@@ -2,7 +2,7 @@
   "name": "Steder i Norge",
   "short_name": "Norge",
   "description": "1.393 eindeutige Orte in Norwegen mit frei lizenzierten Bildern und Camper-Infrastruktur",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#d8dfdc",
   "theme_color": "#1d2822",

@@ -1,24 +1,24 @@
 // Service Worker für Norwy-mapi
 // Version 26.1 - Konservatives Caching für kritische Dateien
 
-const CACHE_VERSION = 'norwy-v26.1';
-const CRITICAL_CACHE = 'norwy-critical-v26.1';
-const DATA_CACHE = 'norwy-data-v26.1';
+const CACHE_VERSION = 'norwy-v26.2';
+const CRITICAL_CACHE = 'norwy-critical-v26.2';
+const DATA_CACHE = 'norwy-data-v26.2';
 
 // Kritische App-Dateien (werden immer gecacht)
 const CRITICAL_FILES = [
-  '/',
-  '/index.html',
-  '/app.css',
-  '/app.js',
-  '/boot.js',
-  '/a11y-overrides.css'
+  './',
+  './index.html',
+  './app.css',
+  './app.js',
+  './boot.js',
+  './a11y-overrides.css'
 ];
 
 // Datendateien (größere Dateien, separater Cache)
 const DATA_FILES = [
-  '/data/places-data.js',
-  '/data/camper_layers.js'
+  './places-data.js',
+  './camper_layers.js'
 ];
 
 // Installation

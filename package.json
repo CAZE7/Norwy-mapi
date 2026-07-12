@@ -1,11 +1,11 @@
 {
   "name": "norwy-mapi",
-  "version": "26.1.0",
+  "version": "26.2.0",
   "private": true,
   "description": "Statische Leaflet-Web-App für Norwegen-POIs und Camper-Infrastruktur",
   "scripts": {
     "serve": "python3 -m http.server 8000",
-    "test": "python3 tests/audit_static.py",
+    "test": "python3 audit_static.py",
     "test:e2e": "playwright test tests/browser_audit.spec.js --reporter=line --workers=1"
   },
   "devDependencies": {

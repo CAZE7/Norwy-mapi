@@ -18,7 +18,7 @@ npm test
 oder direkt:
 
 ```bash
-python3 tests/audit_static.py
+python3 audit_static.py
 ```
 
 ### Was wird geprüft?

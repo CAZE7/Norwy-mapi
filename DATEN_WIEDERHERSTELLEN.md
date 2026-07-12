@@ -1,29 +1,11 @@
-function showBootError(message) {
-  const box = document.getElementById('appError');
-  if (!box) return;
-  box.hidden = false;
-  box.textContent = message;
-}
+# Schutz und Wiederherstellung der Ortsdaten
 
-window.showBootError = showBootError;
+Die drei Haupt-Ortsquellen enthalten jeweils **1.393 Datensätze**:
 
-window.addEventListener('error', function(event) {
-  if (event.target && event.target !== window) {
-    const url = event.target.src || event.target.href || '';
-    const file = url.split('/').pop() || 'Ressource';
-    const message = file.includes('places-data')
-      ? 'Ortsdaten konnten nicht geladen werden.'
-      : file.includes('camper_layers')
-        ? 'Camper-Ebene fehlt. Die Hauptkarte kann weiter genutzt werden.'
-        : 'Datei konnte nicht geladen werden: ' + file;
-    showBootError(message);
-    return;
-  }
-  const errorMessage = event.message || event.error && event.error.toString() || 'unbekannt';
-  showBootError('Startfehler: ' + errorMessage);
-}, true);
+- `places-data.js`
+- `steder_v25_1393.csv`
+- `steder_v25_1393.geojson`
 
-window.addEventListener('unhandledrejection', function(event) {
-  const reason = (event.reason && event.reason.message) ? event.reason.message : (event.reason || 'unbekannter Fehler');
-  showBootError('Ein Dienst oder Datensatz konnte nicht geladen werden: ' + reason);
-});
+Diese Dateien wurden bei der Strukturreparatur nicht verändert. `npm test` prüft Anzahl, Struktur und die bekannten SHA-256-Prüfsummen. Eine Abweichung ist ein harter Fehler und darf nicht ohne bewusste, dokumentierte Datenmigration als neue Basis übernommen werden.
+
+`camper_layers.js` wurde bytegenau aus dem letzten Stand vor dem fehlerhaften Release-Commit wiederhergestellt, weil der defekte Release die echten Camper-Daten durch Platzhalter ersetzt hatte.

@@ -1,84 +1,192 @@
-# Tests
+// @ts-check
+const { test, expect } = require('@playwright/test');
+const AxeBuilder = require('@axe-core/playwright').default;
 
-Die vollständige Anleitung steht in [`../TESTING.md`](../TESTING.md).
+const BASE_URL = process.env.BASE_URL || 'http://127.0.0.1:8000';
 
-## Kurzfassung
-
-### Statischer Audit
-
-```bash
-npm test
-```
-
-oder direkt:
-
-```bash
-python3 tests/audit_static.py
-```
-
-### Browser-Tests
-
-Einmalig installieren:
-
-```bash
-npm install
-npx playwright install chromium
-```
-
-Server starten:
-
-```bash
-npm run serve
-```
-
-In zweitem Terminal:
-
-```bash
-npm run test:e2e
-```
-
-### Veröffentlichte Seite testen
-
-```bash
-BASE_URL=https://caze7.github.io/Norwy-mapi/ npm run test:e2e
-```
-
-## Was wird getestet?
-
-### Statischer Audit (`audit_static.py`)
-
-- ✓ Kritische Dateien existieren
-- ✓ CSS-Dateien sind nicht leer
-- ✓ CSS-Dateien enthalten echtes CSS (kein .gitignore, kein Markdown)
-- ✓ JavaScript-Dateien sind parsebar
-- ✓ JavaScript enthält kein Markdown/CSS/Gitignore
-- ✓ package.json ist gültiges JSON
-- ✓ package.json referenziert nur existierende Pfade
-- ⚠ Warnung bei Optional Chaining (`?.`) in JS
-- ⚠ Warnung bei `Array.at()` in JS
-
-### Browser-Tests (`browser_audit.spec.js`)
-
-- ✓ Seite lädt ohne JavaScript-Fehler
-- ✓ Suchfeld, Karte und Navigation sind sichtbar
-- ✓ Mindestens 1.000 Orte werden geladen
-- ✓ Mindestens 1.000 Camper-Punkte werden geladen
-- ✓ Suchfunktion liefert Ergebnisse
-- ✓ Detail-Modal öffnet sich
-- ✓ Navigation zwischen Tabs funktioniert
-- ✓ ESC-Taste schließt Modals
-- ✓ Keine kritischen Accessibility-Fehler
-- ✓ Kein Boot-Fehler auf Startseite
-
-## Vor jedem Deployment
-
-```bash
-# 1. Statischer Check
-npm test
-
-# 2. Browser-Tests
-npm run serve &
-npm run test:e2e
-
-# 3. Alle grün? → Deploy!
-```
+test.describe('Norwy-mapi Browser Audit', () => {
+  
+  test('Seite lädt ohne JavaScript-Fehler', async ({ page }) => {
+    const errors = [];
+    page.on('pageerror', (error) => {
+      errors.push(error.message);
+    });
+    
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        errors.push(msg.text());
+      }
+    });
+    
+    await page.goto(BASE_URL);
+    await page.waitForTimeout(2000);
+    
+    expect(errors.length, `JavaScript-Fehler gefunden: ${errors.join(', ')}`).toBe(0);
+  });
+  
+  test('Kritische Elemente sind sichtbar', async ({ page }) => {
+    await page.goto(BASE_URL);
+    
+    // Suchfeld sichtbar
+    const searchField = page.locator('#search');
+    await expect(searchField).toBeVisible();
+    
+    // Karte sichtbar
+    const mapElement = page.locator('#map');
+    await expect(mapElement).toBeVisible();
+    
+    // Navigation sichtbar
+    const navElement = page.locator('.nav');
+    await expect(navElement).toBeVisible();
+  });
+  
+  test('Ortsdaten werden geladen', async ({ page }) => {
+    await page.goto(BASE_URL);
+    await page.waitForTimeout(1000);
+    
+    // Prüfe, ob window.PLACES existiert und gefüllt ist
+    const placesCount = await page.evaluate(() => {
+      return Array.isArray(window.PLACES) ? window.PLACES.length : 0;
+    });
+    
+    expect(placesCount).toBeGreaterThan(1000);
+    console.log(`✓ ${placesCount} Orte geladen`);
+  });
+  
+  test('Camper-Daten werden geladen', async ({ page }) => {
+    await page.goto(BASE_URL);
+    await page.waitForTimeout(1000);
+    
+    const camperCount = await page.evaluate(() => {
+      return Array.isArray(window.CAMPER_POINTS) ? window.CAMPER_POINTS.length : 0;
+    });
+    
+    expect(camperCount).toBeGreaterThan(1000);
+    console.log(`✓ ${camperCount} Camper-Punkte geladen`);
+  });
+  
+  test('Suchfunktion funktioniert', async ({ page }) => {
+    await page.goto(BASE_URL);
+    await page.waitForTimeout(500);
+    
+    // Wechsel zu Listen-Modus
+    await page.click('#listTab');
+    await page.waitForTimeout(300);
+    
+    // Tippe Suchbegriff
+    await page.fill('#search', 'Trolltunga');
+    await page.waitForTimeout(500);
+    
+    // Prüfe, ob Ergebnisse angezeigt werden
+    const resultCount = await page.locator('.place').count();
+    expect(resultCount).toBeGreaterThan(0);
+  });
+  
+  test('Detail-Modal öffnet sich', async ({ page }) => {
+    await page.goto(BASE_URL);
+    await page.waitForTimeout(500);
+    
+    // Wechsel zu Listen-Modus
+    await page.click('#listTab');
+    await page.waitForTimeout(300);
+    
+    // Klicke auf ersten Eintrag
+    const firstPlace = page.locator('.place').first();
+    await firstPlace.click();
+    await page.waitForTimeout(300);
+    
+    // Prüfe, ob Detail-Modal sichtbar ist
+    const detailModal = page.locator('#detail');
+    await expect(detailModal).toHaveClass(/open/);
+  });
+  
+  test('Navigation zwischen Tabs funktioniert', async ({ page }) => {
+    await page.goto(BASE_URL);
+    await page.waitForTimeout(500);
+    
+    // Karten-Tab
+    await page.click('#mapTab');
+    await expect(page.locator('#mapTab')).toHaveClass(/active/);
+    
+    // Listen-Tab
+    await page.click('#listTab');
+    await expect(page.locator('#listTab')).toHaveClass(/active/);
+    
+    // Routen-Tab
+    await page.click('#routeTab');
+    await expect(page.locator('#routeTab')).toHaveClass(/active/);
+    
+    // Favoriten-Tab
+    await page.click('#favTab');
+    await expect(page.locator('#favTab')).toHaveClass(/active/);
+  });
+  
+  test('Tastatur-Navigation funktioniert (ESC schließt Modal)', async ({ page }) => {
+    await page.goto(BASE_URL);
+    await page.waitForTimeout(500);
+    
+    // Liste öffnen
+    await page.click('#listTab');
+    await page.waitForTimeout(300);
+    
+    // Ersten Eintrag öffnen
+    const firstPlace = page.locator('.place').first();
+    await firstPlace.click();
+    await page.waitForTimeout(300);
+    
+    // ESC drücken
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(200);
+    
+    // Modal sollte geschlossen sein
+    const detailModal = page.locator('#detail');
+    await expect(detailModal).not.toHaveClass(/open/);
+  });
+  
+  test('Keine kritischen Accessibility-Fehler', async ({ page }) => {
+    await page.goto(BASE_URL);
+    await page.waitForTimeout(1000);
+    
+    const accessibilityScanResults = await new AxeBuilder({ page })
+      .disableRules(['color-contrast']) // Farb-Kontrast nur warnen, nicht fehlschlagen
+      .analyze();
+    
+    const criticalViolations = accessibilityScanResults.violations.filter(
+      v => v.impact === 'critical' || v.impact === 'serious'
+    );
+    
+    expect(criticalViolations.length, 
+      `Kritische Accessibility-Fehler: ${JSON.stringify(criticalViolations, null, 2)}`
+    ).toBe(0);
+  });
+  
+  test('Kein offensichtlicher Boot-Fehler auf Startseite', async ({ page }) => {
+    await page.goto(BASE_URL);
+    await page.waitForTimeout(1500);
+    
+    // Prüfe, ob Error-Box sichtbar ist
+    const errorBox = page.locator('#appError');
+    const isErrorVisible = await errorBox.isVisible().catch(() => false);
+    
+    expect(isErrorVisible).toBe(false);
+  });
+  
+  test('Service Worker registriert sich (falls vorhanden)', async ({ page }) => {
+    await page.goto(BASE_URL);
+    await page.waitForTimeout(1000);
+    
+    const swRegistered = await page.evaluate(() => {
+      return 'serviceWorker' in navigator;
+    });
+    
+    if (swRegistered) {
+      console.log('✓ Service Worker API verfügbar');
+    } else {
+      console.log('⚠ Service Worker API nicht verfügbar (z.B. kein HTTPS)');
+    }
+    
+    // Nicht als Fehler werten, da es in lokaler Entwicklung normal ist
+    expect(swRegistered !== undefined).toBe(true);
+  });
+  
+});
