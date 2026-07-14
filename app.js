@@ -410,17 +410,19 @@
     const types = [...new Set(CAMPER_POINTS.map(p => p.type).filter(Boolean))];
     types.forEach(type => {
       const pts = CAMPER_POINTS.filter(p => p.type === type);
-      const lg = L.layerGroup(pts.map(p => {
-        const m = L.circleMarker([p.lat, p.lng], {
-          radius: 6,
-          fillColor: '#2E5266',
-          color: '#fff',
-          weight: 1,
-          fillOpacity: 0.85,
-        });
-        m.bindPopup(`<div class="utilityPopup"><div class="uMeta">${type}</div><h3>${p.name || ''}</h3>${p.address || ''}</div>`);
-        return m;
-      }));
+      const lg = L.layerGroup(pts
+        .filter(p => p.lat != null && p.lng != null && isFinite(p.lat) && isFinite(p.lng))
+        .map(p => {
+          const m = L.circleMarker([p.lat, p.lng], {
+            radius: 6,
+            fillColor: '#2E5266',
+            color: '#fff',
+            weight: 1,
+            fillOpacity: 0.85,
+          });
+          m.bindPopup(`<div class="utilityPopup"><div class="uMeta">${type}</div><h3>${p.name || ''}</h3>${p.address || ''}</div>`);
+          return m;
+        }));
       camperLayerMap[type] = lg;
       const chk = qs(`#camper-${type}`);
       if (chk) {
