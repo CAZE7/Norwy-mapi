@@ -1,226 +1,445 @@
+/* ═══════════════════════════════════════════════════════════════
+   Steder i Norge – app.css  v26.3  (UX-Überarbeitung Juli 2026)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Design Tokens ────────────────────────────────────────────── */
 :root {
-  --paper: #f4f1ea;
+  --paper:   #f4f1ea;
   --paper-2: #ebe7de;
-  --ink: #1d2822;
-  --muted: #6c746e;
-  --line: #d5d1c8;
-  --moss: #405b49;
-  --navy: #263b46;
-  --rust: #9a5b42;
-  --white: #fffefa;
-  --safe: env(safe-area-inset-bottom, 0px);
+  --ink:     #1d2822;
+  --muted:   #5e6860;   /* war #6c746e – etwas mehr Kontrast für AA */
+  --line:    #d5d1c8;
+  --moss:    #405b49;
+  --navy:    #263b46;
+  --rust:    #9a5b42;
+  --white:   #fffefa;
+  --safe:    env(safe-area-inset-bottom, 0px);
+
+  /* Konsistente Spacing-Skala – verhindert Magic Numbers im Rest */
+  --space-xs: 6px;
+  --space-s:  10px;
+  --space-m:  14px;
+  --space-l:  22px;
+
+  /* Mindest-Touch-Target laut WCAG 2.5.5 (AAA) */
+  --touch: 48px;
+
+  /* Sidebar-Breite auf größeren Screens */
+  --sidebar-w: 360px;
 }
+
+/* ── Reset & Box-Sizing ────────────────────────────────────────── */
 * {
   box-sizing: border-box;
+  /* Entfernt blauen Flash beim Tap auf iOS – subjektiv nerviger als hilfreich */
   -webkit-tap-highlight-color: transparent;
 }
+
 html,
-body,
-#map {
+body {
   height: 100%;
   margin: 0;
 }
+
+/* Die Karte füllt standardmäßig das ganze Fenster */
+#map {
+  height: 100%;
+}
+
 body {
   overflow: hidden;
   background: #d8dfdc;
   color: var(--ink);
-  font-family: Arial, Helvetica, sans-serif;
+  /* System-UI als erste Wahl – fühlt sich auf dem Gerät heimisch an,
+     Georgia nur für redaktionellen Text */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
 }
+
 button,
 input {
   font: inherit;
 }
+
+/* ── Header (Titel + Info-Button) ────────────────────────────── */
 .top {
   position: fixed;
   z-index: 1200;
-  top: calc(12px + env(safe-area-inset-top, 0px));
-  left: 12px;
-  right: 12px;
+  top: calc(var(--space-m) + env(safe-area-inset-top, 0px));
+  left: var(--space-m);
+  right: var(--space-m);
   display: flex;
-  gap: 8px;
+  gap: var(--space-xs);
   pointer-events: none;
 }
+
 .title {
   pointer-events: auto;
   flex: 1;
-  min-height: 58px;
+  min-height: var(--touch);   /* War 58px – passt, bleibt */
   background: rgba(255, 254, 250, 0.94);
   border: 1px solid rgba(29, 40, 34, 0.14);
-  padding: 11px 14px;
+  padding: 10px var(--space-m);
   box-shadow: 0 4px 18px rgba(29, 40, 34, 0.13);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 3px;
 }
+
 .title b {
   display: block;
   font-family: Georgia, "Times New Roman", serif;
   font-size: 19px;
   font-weight: normal;
   letter-spacing: 0.01em;
+  line-height: 1.2;
 }
+
 .title small {
   display: block;
-  margin-top: 3px;
+  margin-top: 2px;
   color: var(--muted);
-  font-size: 9px;
-  letter-spacing: 0.12em;
+  /* War 9px – 10px ist das absolute Minimum für Uppercase-Labels */
+  font-size: 10px;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
+
+/* Info-Button */
 .circle {
   pointer-events: auto;
-  width: 58px;
-  height: 58px;
+  flex: none;
+  width: var(--touch);
+  height: var(--touch);   /* War 58px – 48px reicht, spart etwas Platz */
   border: 1px solid rgba(29, 40, 34, 0.14);
   background: var(--white);
   color: var(--ink);
   box-shadow: 0 4px 18px rgba(29, 40, 34, 0.13);
-  font-size: 23px;
+  font-size: 22px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background 0.15s;
 }
+
+.circle:hover {
+  background: var(--paper-2);
+}
+
+/* ── Floating Action Buttons (Standort + Ebenen) ─────────────── */
 .float {
   position: fixed;
   z-index: 1150;
-  right: 14px;
+  right: var(--space-m);
   bottom: calc(180px + var(--safe));
   display: grid;
-  gap: 8px;
+  gap: var(--space-xs);
 }
+
 .float button {
-  width: 46px;
-  height: 46px;
+  /* War 46×46px – jetzt auf Touch-Minimum angehoben */
+  width: var(--touch);
+  height: var(--touch);
   border: 1px solid rgba(29, 40, 34, 0.15);
-  border-radius: 2px;
+  border-radius: 3px;
   background: var(--white);
   color: var(--ink);
   box-shadow: 0 4px 14px rgba(29, 40, 34, 0.15);
-  font-size: 17px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: background 0.15s;
 }
+
+.float button:hover {
+  background: var(--paper-2);
+}
+
 .float .secret {
   background: var(--navy);
   color: white;
 }
+
+/* ── Bottom Sheet ─────────────────────────────────────────────── */
 .sheet {
   position: fixed;
   z-index: 1250;
   left: 0;
   right: 0;
   bottom: calc(60px + var(--safe));
-  height: 116px;
+  /* Etwas höher als vorher – zeigt nun Suchfeld + Hinweis-Text */
+  height: 128px;
   background: var(--paper);
   border-radius: 14px 14px 0 0;
   border-top: 1px solid var(--line);
   box-shadow: 0 -8px 26px rgba(29, 40, 34, 0.15);
-  transition: height 0.26s ease;
+  transition: height 0.26s cubic-bezier(0.34, 1.12, 0.64, 1); /* leichter Bounce */
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
+
 .sheet.mid {
   height: 54vh;
 }
+
 .sheet.full {
-  height: calc(100vh - 72px - var(--safe));
+  height: calc(100vh - 72px - env(safe-area-inset-top, 0px) - var(--safe));
 }
+
+/* Drag-Handle */
 .handle {
-  height: 24px;
+  height: 28px;  /* etwas größer – leichter zu greifen */
   display: grid;
   place-items: center;
   flex: none;
+  cursor: ns-resize;
 }
-.handle:before {
+
+.handle::before {
   content: "";
-  width: 42px;
-  height: 3px;
-  background: #aeb2ad;
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background: #bdc2bc;
 }
+
+/* Sheet-Kopf: Suche + Filter */
 .sheetHead {
-  padding: 0 14px 9px;
+  padding: 0 var(--space-m) var(--space-s);
   display: flex;
-  gap: 7px;
+  gap: var(--space-xs);
   flex: none;
+  align-items: center;
 }
+
+/* Kleiner Hinweis wenn Sheet kollabiert – signalisiert "hier geht mehr" */
+.sheetHint {
+  padding: 0 var(--space-m) var(--space-xs);
+  font-size: 11px;
+  color: var(--muted);
+  flex: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* Blendet sich aus wenn Sheet geöffnet ist – JavaScript setzt .mid/.full */
+  transition: opacity 0.2s;
+}
+.sheet.mid .sheetHint,
+.sheet.full .sheetHint {
+  opacity: 0;
+  pointer-events: none;
+  height: 0;
+  padding: 0;
+}
+
+/* Suchfeld */
 .search {
   flex: 1;
   min-width: 0;
   border: 0;
-  border-bottom: 1px solid #aeb5af;
+  border-bottom: 2px solid var(--line);  /* war 1px – etwas besser sichtbar */
   border-radius: 0;
-  padding: 10px 2px;
+  /* Optimierung Touch-Höhe: explizite Mindesthöhe statt nur Padding */
+  min-height: var(--touch);
+  padding: 8px 4px;
   background: transparent;
   color: var(--ink);
   outline: none;
-  font-size: 14px;
+  /* War 14px – 15px ist angenehmer auf Mobil */
+  font-size: 15px;
+  transition: border-color 0.15s;
 }
+
+.search:focus {
+  border-bottom-color: var(--moss);
+}
+
 .search::placeholder {
-  color: #818782;
+  color: #909990;
 }
+
+/* Filter-Toggle-Button */
 .filterBtn {
-  min-width: 58px;
+  /* War zu klein für sichere Touch-Bedienung */
+  min-width: var(--touch);
+  min-height: var(--touch);
   border: 1px solid #bfc4bf;
-  border-radius: 2px;
+  border-radius: 3px;
   background: transparent;
   color: var(--ink);
-  font-size: 10px;
-  padding: 0 7px;
+  /* War 10px – 12px ist das Minimum für Interface-Buttons */
+  font-size: 12px;
+  padding: 0 var(--space-s);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
 }
+
+.filterBtn:hover {
+  background: var(--paper-2);
+  border-color: var(--muted);
+}
+
+.filterBtn[aria-expanded="true"] {
+  background: var(--ink);
+  color: var(--white);
+  border-color: var(--ink);
+}
+
+/* ── Filter-Panel ─────────────────────────────────────────────── */
+.filterPanel {
+  padding: var(--space-s) var(--space-m);
+  background: var(--paper-2);
+  border-bottom: 1px solid var(--line);
+  /* Scrollbar wenn viele Kategorien */
+  overflow-y: auto;
+  max-height: 40vh;
+}
+
+.filterPanel h3 {
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0 0 var(--space-xs);
+  color: var(--muted);
+}
+
+.filterGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-m);
+}
+
+/* Filter-Chips: genug Padding für Einhandbedienung */
+.filterChip {
+  border: 1px solid #bfc4bf;
+  border-radius: 14px;
+  /* Optimierung Daumenzone auf Mobilgeräten: mindestens 36px hoch */
+  padding: 7px 13px;
+  background: var(--white);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.18s;
+  line-height: 1;
+  user-select: none;
+}
+
+.filterChip:hover {
+  border-color: var(--moss);
+  background: var(--paper);
+}
+
+.filterChip.active {
+  background: var(--ink);
+  color: white;
+  border-color: var(--ink);
+}
+
+/* Aktiver Filter-Zusammenfassung unter der Suche */
+#filterSummary {
+  padding: 0 var(--space-m) var(--space-xs);
+  font-size: 11px;
+  color: var(--muted);
+  flex: none;
+}
+
+/* ── Ortsliste (Content-Bereich) ──────────────────────────────── */
 .content {
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 0 10px 18px;
+  padding: 0 var(--space-s) 24px;
   flex: 1;
+  -webkit-overflow-scrolling: touch;
 }
+
+/* Einzelner Ort in der Liste */
 .place {
   display: grid;
-  grid-template-columns: 86px 1fr 16px;
-  gap: 12px;
-  padding: 11px 4px;
+  grid-template-columns: 80px 1fr 22px;
+  gap: var(--space-s);
+  /* Explizite Mindesthöhe statt nur padding – sicheres Touch-Target */
+  min-height: var(--touch);
+  padding: 12px 4px;
   border-bottom: 1px solid var(--line);
   align-items: center;
   cursor: pointer;
+  transition: background 0.12s;
 }
+
+.place:hover {
+  background: var(--paper-2);
+  margin: 0 calc(var(--space-s) * -1);
+  padding-left: calc(var(--space-s) + 4px);
+  padding-right: calc(var(--space-s) + 4px);
+}
+
+/* Thumbnail */
 .thumb {
-  width: 86px;
-  height: 66px;
-  border-radius: 1px;
+  width: 80px;
+  height: 62px;
+  border-radius: 2px;
   object-fit: cover;
   background: #d9d7d0;
+  flex: none;
 }
+
+/* Placeholder wenn kein Bild vorhanden */
 .ph {
   display: grid;
   place-items: center;
-  color: #68736c;
+  color: #7a857e;
   font-family: Georgia, serif;
   font-size: 10px;
+  letter-spacing: 0.08em;
 }
-.ph:after {
+
+.ph::after {
   content: "NORD";
 }
+
+/* Ortsname */
 .place h3 {
   font-family: Georgia, "Times New Roman", serif;
   font-size: 16px;
   font-weight: normal;
-  margin: 4px 0 5px;
-  line-height: 1.08;
+  margin: 0 0 4px;
+  line-height: 1.15;
 }
+
+/* Region · Kategorie */
 .place small {
-  font-size: 9px;
+  /* War 9px – 11px Minimum für lesbare sekundäre Labels */
+  font-size: 11px;
   color: var(--muted);
   display: block;
   line-height: 1.3;
 }
+
+/* Chevron am Ende der Zeile */
 .arrow {
   font-family: Georgia, serif;
   font-size: 20px;
-  color: #8a918c;
+  color: #a0a89e;
+  justify-self: end;
+  line-height: 1;
 }
+
+/* Tags (Favorit, Highlight…) */
 .tag {
   display: inline-block;
-  color: #59645d;
-  font-size: 8px;
+  color: var(--muted);
+  /* War 8px – 10px ist absolutes Minimum */
+  font-size: 10px;
   font-weight: bold;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+
 .tag.known {
   color: var(--rust);
 }
+
+/* ── Bottom Navigation ────────────────────────────────────────── */
 .nav {
   position: fixed;
   z-index: 1300;
@@ -234,350 +453,605 @@ input {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
 }
+
 .nav button {
   border: 0;
   background: transparent;
   color: #737b75;
-  font-size: 8px;
-  letter-spacing: 0.05em;
+  /* War 8px – 10px für Tab-Labels */
+  font-size: 10px;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  padding: 8px 2px;
+  /* Kein festes padding – touch-height kommt durch Elternhöhe */
+  padding: 6px 2px 4px;
+  cursor: pointer;
+  transition: color 0.15s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
 }
+
+.nav button:hover {
+  color: var(--ink);
+}
+
 .nav button span {
   display: block;
   font-family: Georgia, serif;
-  font-size: 17px;
-  margin-bottom: 3px;
+  font-size: 18px;
+  line-height: 1;
 }
+
 .nav button.active {
   color: var(--ink);
-  box-shadow: inset 0 2px var(--ink);
+  /* Aktiv-Indikator oben – besser sichtbar als box-shadow */
+  box-shadow: inset 0 3px 0 var(--ink);
 }
+
+/* ── Detail-Modal (Orts-Detailseite) ──────────────────────────── */
 .detail {
   position: fixed;
   z-index: 2000;
   inset: 0;
   background: var(--paper);
   transform: translateY(102%);
-  transition: 0.26s;
+  transition: transform 0.28s cubic-bezier(0.34, 1.06, 0.64, 1);
   overflow-y: auto;
-  padding-bottom: calc(24px + var(--safe));
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(28px + var(--safe));
 }
+
 .detail.open {
   transform: none;
 }
+
+/* Heldenbild */
 .heroimg {
-  height: 36vh;
-  min-height: 220px;
+  /* War 36vh – etwas mehr Spielraum auf kleinen Screens */
+  height: 38vh;
+  min-height: 200px;
+  max-height: 340px;
   background: #d8d7d1;
   position: relative;
+  overflow: hidden;
 }
+
 .heroimg img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
+
+/* Platzhalter wenn kein Bild */
 .noimg {
   height: 100%;
   display: grid;
   place-items: center;
-  color: #68736c;
-  font: 15px Georgia, serif;
+  color: #7a857e;
+  font: 14px/1.5 Georgia, serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
+
+/* Zurück-Button im Modal */
 .close {
   position: absolute;
   top: calc(12px + env(safe-area-inset-top, 0px));
   left: 12px;
-  width: 42px;
-  height: 42px;
-  border: 1px solid rgba(29, 40, 34, 0.2);
-  border-radius: 0;
-  background: rgba(255, 254, 250, 0.94);
+  /* War 42px – angehoben auf WCAG-Minimum */
+  width: var(--touch);
+  height: var(--touch);
+  border: 1px solid rgba(29, 40, 34, 0.22);
+  border-radius: 3px;
+  background: rgba(255, 254, 250, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   color: var(--ink);
-  font: 25px Georgia, serif;
+  font: 26px/1 Georgia, serif;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background 0.15s;
 }
+
+.close:hover {
+  background: var(--white);
+}
+
+/* Bildunterschrift-Tag über dem Bild */
 .photoTag {
   position: absolute;
   left: 12px;
   bottom: 12px;
-  background: rgba(29, 40, 34, 0.85);
-  color: white;
-  padding: 5px 8px;
-  font-size: 8px;
+  background: rgba(29, 40, 34, 0.82);
+  color: rgba(255, 254, 250, 0.92);
+  padding: 5px 9px;
+  font-size: 10px;
   letter-spacing: 0.05em;
+  border-radius: 2px;
 }
+
+/* Detail-Body */
 .detailBody {
-  padding: 21px 18px;
+  padding: var(--space-l) var(--space-l);
+  max-width: 680px;   /* Lesebreite begrenzen auf Desktop/Tablet */
 }
+
 .detailBody h1 {
   font-family: Georgia, "Times New Roman", serif;
   font-weight: normal;
-  font-size: 30px;
-  line-height: 1.08;
-  margin: 6px 0 8px;
+  /* War 30px – passt gut auf Mobile, auf Desktop darf es etwas größer */
+  font-size: clamp(26px, 5vw, 36px);
+  line-height: 1.1;
+  margin: 6px 0 10px;
 }
+
 .meta {
-  font-size: 9px;
+  font-size: 10px;
   color: var(--muted);
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
+
 .why {
-  font: 15px/1.55 Georgia, "Times New Roman", serif;
-  margin: 18px 0;
+  font: 15px/1.6 Georgia, "Times New Roman", serif;
+  margin: 16px 0;
+  color: var(--ink);
 }
+
 .access {
-  font-size: 11px;
-  line-height: 1.5;
+  font-size: 12px;   /* War 11px – etwas lesbarer */
+  line-height: 1.55;
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
-  padding: 12px 0;
+  padding: 13px 0;
 }
+
 .note {
-  font-size: 10px;
-  line-height: 1.5;
+  font-size: 11px;   /* War 10px */
+  line-height: 1.55;
   color: var(--muted);
-  margin-top: 12px;
+  margin-top: 13px;
 }
+
+/* Action-Buttons (Favorit, Route, Maps, Wikipedia) */
 .actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 7px;
-  margin-top: 18px;
+  gap: var(--space-xs);
+  margin-top: var(--space-l);
 }
+
 .actions a,
 .actions button {
   border: 1px solid #aeb5af;
-  border-radius: 1px;
-  padding: 12px 6px;
+  border-radius: 2px;
+  /* Explizite Mindesthöhe für sichere Touch-Bedienung */
+  min-height: var(--touch);
+  padding: 10px var(--space-xs);
   background: transparent;
   color: var(--ink);
   text-align: center;
   text-decoration: none;
-  font-size: 9px;
+  /* War 9px – 11px Minimum für Action-Labels */
+  font-size: 11px;
   font-weight: bold;
   letter-spacing: 0.05em;
   text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
 }
+
+.actions a:hover,
+.actions button:hover {
+  background: var(--paper-2);
+  border-color: var(--muted);
+}
+
 .actions .primary {
   background: var(--ink);
   color: white;
   border-color: var(--ink);
 }
+
+.actions .primary:hover {
+  background: var(--navy);
+  border-color: var(--navy);
+}
+
 .actions .active {
   background: #ddd7c9;
+  border-color: #c4beaf;
 }
+
+/* Fotokredit */
 .photoCredit {
-  margin-top: 14px;
-  padding-top: 10px;
+  margin-top: var(--space-m);
+  padding-top: var(--space-s);
   border-top: 1px solid var(--line);
-  font-size: 9px;
-  line-height: 1.5;
+  font-size: 10px;
+  line-height: 1.55;
   color: var(--muted);
 }
+
 .photoCredit a {
   color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
+
+/* ── Impressum / Legal Modal ──────────────────────────────────── */
 .legal {
   position: fixed;
   z-index: 2100;
   inset: 0;
   background: var(--paper);
   transform: translateY(102%);
-  transition: 0.26s;
+  transition: transform 0.28s cubic-bezier(0.34, 1.06, 0.64, 1);
   overflow: auto;
+  -webkit-overflow-scrolling: touch;
 }
+
 .legal.open {
   transform: none;
 }
+
+/* Schließen-Button im Legal-Modal */
 .legalClose {
   position: fixed;
   z-index: 2;
-  right: 14px;
-  top: calc(14px + env(safe-area-inset-top, 0px));
+  right: var(--space-m);
+  top: calc(var(--space-m) + env(safe-area-inset-top, 0px));
   border: 1px solid #aeb5af;
   background: var(--white);
-  padding: 10px 12px;
+  /* Mindest-Touch-Target */
+  min-height: var(--touch);
+  padding: 8px var(--space-m);
   color: var(--ink);
-  font-size: 9px;
-  letter-spacing: 0.08em;
+  /* War 9px */
+  font-size: 11px;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background 0.15s;
 }
+
+.legalClose:hover {
+  background: var(--paper-2);
+}
+
 .legalInner {
-  max-width: 720px;
+  max-width: 680px;
   margin: 0 auto;
-  padding: 70px 22px 60px;
+  padding: 72px var(--space-l) 60px;
 }
+
 .legalInner h1 {
-  font: normal 36px/1.1 Georgia, serif;
-  margin: 6px 0 24px;
+  font: normal 34px/1.1 Georgia, serif;
+  margin: 6px 0 22px;
 }
+
 .legalInner h2 {
   font: normal 20px/1.2 Georgia, serif;
-  margin: 28px 0 8px;
+  margin: 26px 0 8px;
 }
+
 .legalInner p {
-  font: 14px/1.6 Georgia, serif;
+  font: 14px/1.65 Georgia, serif;
   color: #38423c;
 }
+
 .legalInner a {
-  color: #263b46;
+  color: var(--navy);
+  text-underline-offset: 2px;
 }
+
 .legalInner .eyebrow {
-  font: 9px Arial;
+  font: 10px Arial, sans-serif;
   text-transform: uppercase;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   color: var(--muted);
 }
-.appError {
-  position: fixed;
-  z-index: 9999;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: #fff;
-  border: 2px solid var(--rust);
-  padding: 24px;
-  max-width: 90%;
-  text-align: center;
-  font-size: 14px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-}
-.appToast {
-  position: fixed;
-  z-index: 9998;
-  bottom: calc(80px + var(--safe));
-  left: 50%;
-  transform: translateX(-50%) translateY(100px);
-  background: rgba(29, 40, 34, 0.92);
-  color: white;
-  padding: 12px 18px;
-  border-radius: 4px;
-  font-size: 13px;
-  opacity: 0;
-  transition: all 0.3s ease;
-  max-width: 90%;
-  text-align: center;
-}
-.appToast.show {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
-}
-.pin {
-  width: 21px;
-  height: 21px;
-  border-radius: 50% 50% 50% 0;
-  transform: rotate(-45deg);
-  border: 2px solid white;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-}
-.pin-water { background: #4A90E2; }
-.pin-view { background: #E85D75; }
-.pin-nature { background: #50C878; }
-.pin-mountain { background: #8B4513; }
-.pin-coast { background: #00CED1; }
-.pin-geology { background: #9370DB; }
-.pin-roadtrip { background: #FF8C00; }
-.pin-food { background: #FFD700; }
-.utilityIcon {
-  width: 20px;
-  height: 20px;
-  border-radius: 2px;
-  display: grid;
-  place-items: center;
-  font-size: 9px;
-  font-weight: bold;
-  color: white;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-}
-.utility-motorhome { background: #2E5266; }
-.utility-camping { background: #6B8E23; }
-.utility-water { background: #4A90E2; }
-.utility-toilets { background: #8B4513; }
-.utility-ferry { background: #4682B4; }
-.utility-dump { background: #696969; }
-.utilityPopup {
-  font-family: Arial, sans-serif;
-  font-size: 13px;
-  line-height: 1.5;
-}
-.utilityPopup h3 {
-  margin: 4px 0 8px;
-  font-size: 15px;
-  font-weight: bold;
-}
-.utilityPopup .uMeta {
-  font-size: 10px;
-  color: #666;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-.utilityPopup a {
-  color: #263b46;
-  text-decoration: underline;
-}
-.utilityPhones {
-  margin: 8px 0;
-}
-.filterPanel {
-  padding: 12px 14px;
-  background: var(--paper-2);
-  border-bottom: 1px solid var(--line);
-}
-.filterPanel h3 {
-  font-size: 11px;
-  font-weight: bold;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin: 0 0 8px;
-  color: var(--muted);
-}
-.filterGroup {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 14px;
-}
-.filterChip {
-  border: 1px solid #bfc4bf;
-  border-radius: 12px;
-  padding: 4px 10px;
-  background: white;
-  font-size: 11px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.filterChip.active {
-  background: var(--ink);
-  color: white;
-  border-color: var(--ink);
-}
+
+/* ── Ebenen-Panel ─────────────────────────────────────────────── */
 .layerPanel {
   position: fixed;
   z-index: 2050;
   inset: 0;
   background: var(--paper);
   transform: translateY(102%);
-  transition: 0.26s;
+  transition: transform 0.28s cubic-bezier(0.34, 1.06, 0.64, 1);
   overflow: auto;
-  padding: 60px 18px 40px;
+  -webkit-overflow-scrolling: touch;
+  padding: 64px var(--space-l) 40px;
 }
+
 .layerPanel.open {
   transform: none;
 }
+
 .layerPanel h2 {
   font: normal 24px/1.2 Georgia, serif;
-  margin: 0 0 16px;
+  margin: 0 0 var(--space-m);
 }
+
 .layerPanel label {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 0;
+  gap: var(--space-s);
+  /* Optimierung Daumenzone: mindestens Touch-Höhe für jede Zeile */
+  min-height: var(--touch);
+  padding: 8px 0;
   border-bottom: 1px solid var(--line);
   cursor: pointer;
+  font-size: 14px;
+  transition: color 0.12s;
 }
+
+.layerPanel label:hover {
+  color: var(--moss);
+}
+
 .layerPanel input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
+  /* Größerer Tap-Bereich durch größere Checkbox */
+  width: 22px;
+  height: 22px;
+  flex: none;
+  accent-color: var(--moss);
+  cursor: pointer;
+}
+
+/* ── Karten-Pins ──────────────────────────────────────────────── */
+.pin {
+  width: 21px;
+  height: 21px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  border: 2px solid white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.32);
+}
+
+/* Pin-Farben nach Kategorie */
+.pin-water    { background: #4A90E2; }
+.pin-view     { background: #E85D75; }
+.pin-nature   { background: #50C878; }
+.pin-mountain { background: #8B4513; }
+.pin-coast    { background: #00CED1; }
+.pin-geology  { background: #9370DB; }
+.pin-roadtrip { background: #FF8C00; }
+.pin-food     { background: #FFD700; }
+
+/* ── Camper-Infrastruktur Popup ───────────────────────────────── */
+.utilityIcon {
+  width: 22px;
+  height: 22px;
+  border-radius: 3px;
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  font-weight: bold;
+  color: white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.28);
+}
+
+.utility-motorhome { background: #2E5266; }
+.utility-camping   { background: #6B8E23; }
+.utility-water     { background: #4A90E2; }
+.utility-toilets   { background: #8B4513; }
+.utility-ferry     { background: #4682B4; }
+.utility-dump      { background: #696969; }
+
+.utilityPopup {
+  font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  min-width: 180px;
+}
+
+.utilityPopup h3 {
+  margin: 4px 0 6px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.utilityPopup .uMeta {
+  font-size: 10px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 2px;
+}
+
+.utilityPopup a {
+  color: var(--navy);
+  text-decoration: underline;
+  text-underline-offset: 1px;
+}
+
+.utilityPhones {
+  margin: 8px 0;
+}
+
+/* ── Fehler- & Toast-Meldungen ────────────────────────────────── */
+.appError {
+  position: fixed;
+  z-index: 9999;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--white);
+  border: 2px solid var(--rust);
+  border-radius: 4px;
+  padding: 24px var(--space-l);
+  max-width: min(90%, 400px);
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.5;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28);
+}
+
+.appToast {
+  position: fixed;
+  z-index: 9998;
+  bottom: calc(80px + var(--safe));
+  left: 50%;
+  transform: translateX(-50%) translateY(120px);
+  background: rgba(29, 40, 34, 0.93);
+  color: white;
+  padding: 11px 18px;
+  border-radius: 6px;
+  font-size: 13px;
+  opacity: 0;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  max-width: min(90%, 360px);
+  text-align: center;
+  pointer-events: none;
+}
+
+.appToast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE BREAKPOINTS
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Tablet (≥ 640px) ─────────────────────────────────────────── */
+@media (min-width: 640px) {
+  /* Mehr Raumnutzung auf dem Tablet – etwas breiterer Header */
+  .top {
+    left: var(--space-l);
+    right: var(--space-l);
+  }
+
+  /* Ortsdetail bekommt mehr Atemraum */
+  .detailBody {
+    padding: 28px 32px;
+  }
+
+  /* Vier Spalten für Actions – alle auf einer Zeile */
+  .actions {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  /* Sheet-Pins oben – Float-Buttons etwas mehr vom Rand */
+  .float {
+    right: var(--space-l);
+  }
+
+  /* Filter-Panel darf etwas breiter scrollen */
+  .filterPanel {
+    max-height: 50vh;
+  }
+}
+
+/* ── Desktop Side-Panel (≥ 900px) ────────────────────────────── */
+@media (min-width: 900px) {
+  /* Die Karte nimmt nicht mehr die ganze Breite ein –
+     links gibt es das fixe Sidebar-Panel */
+  #map {
+    position: fixed;
+    inset: 0;
+    left: var(--sidebar-w);
+  }
+
+  /* Sidebar ersetzt Sheet komplett auf Desktop */
+  .sheet {
+    /* Position: links, feste Höhe, kein Bottom-Sheet-Verhalten mehr */
+    position: fixed;
+    left: 0;
+    right: auto;
+    top: 0;
+    bottom: 0;
+    width: var(--sidebar-w);
+    height: 100% !important;  /* !important: überschreibt JS-gesetztes inline-style */
+    border-radius: 0;
+    border-top: 0;
+    border-right: 1px solid var(--line);
+    box-shadow: 2px 0 18px rgba(29, 40, 34, 0.1);
+    z-index: 1100;
+    /* Kein slide-up-Transition auf Desktop */
+    transition: none;
+  }
+
+  /* Handle auf Desktop ausblenden – kein Drag benötigt */
+  .handle {
+    display: none;
+  }
+
+  /* Mehr Padding oben für den Header */
+  .sheetHead {
+    padding: 80px var(--space-m) var(--space-s);
+  }
+
+  /* Hint-Text auf Desktop dauerhaft ausblenden */
+  .sheetHint {
+    display: none;
+  }
+
+  /* Float-Buttons passen zur Karte, nicht zur Sidebar */
+  .float {
+    right: var(--space-m);
+    left: auto;
+    bottom: calc(72px + var(--safe));
+  }
+
+  /* Navigation-Bar: linksbündig unter der Sidebar */
+  .nav {
+    width: var(--sidebar-w);
+    border-right: 1px solid var(--line);
+  }
+
+  /* Top-Bar passt sich der Sidebar an */
+  .top {
+    left: calc(var(--sidebar-w) + var(--space-m));
+    right: var(--space-m);
+  }
+
+  /* Detail-Modal auf Desktop: gleitet von rechts rein, nicht von unten */
+  .detail {
+    left: var(--sidebar-w);
+    transform: translateX(102%);
+    transition: transform 0.28s cubic-bezier(0.34, 1.06, 0.64, 1);
+  }
+
+  .detail.open {
+    transform: none;
+  }
+
+  /* Legal- und Layer-Panel: auf Desktop etwas schmaler */
+  .legal,
+  .layerPanel {
+    left: var(--sidebar-w);
+  }
+
+  /* Detailseite: schönere Lesebreite auf breiten Screens */
+  .detailBody {
+    padding: 32px 40px;
+    max-width: 600px;
+  }
+
+  /* Place-Liste: auf Desktop etwas kompakter */
+  .place {
+    grid-template-columns: 72px 1fr 18px;
+  }
+
+  .thumb {
+    width: 72px;
+    height: 56px;
+  }
+}
+
+/* ── Large Desktop (≥ 1280px) ────────────────────────────────── */
+@media (min-width: 1280px) {
+  :root {
+    --sidebar-w: 400px;
+  }
 }

@@ -1,16 +1,38 @@
-/* Accessibility Overrides für verbesserte Barrierefreiheit */
+/* ═══════════════════════════════════════════════════════════════
+   a11y-overrides.css  –  Barrierefreiheit & System-Präferenzen
+   ═══════════════════════════════════════════════════════════════ */
 
-/* Fokus-Sichtbarkeit für Tastaturnutzer */
+/* ── Fokus-Sichtbarkeit für Tastaturnutzer ───────────────────── */
+/* WCAG 2.4.7: sichtbarer Fokusring ist Pflicht, nicht optional */
 button:focus-visible,
 a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 [tabindex]:focus-visible {
-  outline: 2px solid var(--navy);
+  outline: 3px solid var(--navy);
   outline-offset: 2px;
+  border-radius: 1px;
 }
 
-/* Verstecktes aber screen-reader-zugängliches Element */
+/* ── Skip-Link für Tastaturnutzer ────────────────────────────── */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--ink);
+  color: white;
+  padding: 10px 18px;
+  text-decoration: none;
+  font-size: 13px;
+  z-index: 10000;
+  border-radius: 0 0 4px 0;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* ── Screen-Reader-Only ──────────────────────────────────────── */
 .sr-only {
   position: absolute;
   width: 1px;
@@ -23,39 +45,37 @@ select:focus-visible,
   border-width: 0;
 }
 
-/* Skip-Link für Tastaturnutzer */
-.skip-link {
-  position: absolute;
-  top: -40px;
-  left: 0;
-  background: var(--ink);
-  color: white;
-  padding: 8px 16px;
-  text-decoration: none;
-  z-index: 10000;
-}
-
-.skip-link:focus {
-  top: 0;
-}
-
-/* Kontrast-Verbesserungen für Text */
-.muted,
-.meta,
-.photoCredit {
-  color: #5a6460;
-}
-
-/* Größerer Touch-Target für mobile Geräte */
+/* ── Touch-Targets: coarse pointer = Touch-Gerät ─────────────── */
+/* Optimierung Daumenzone auf Mobilgeräten */
 @media (pointer: coarse) {
   button,
-  a,
-  .place {
-    min-height: 44px;
+  a[href],
+  .place,
+  .filterChip,
+  .layerPanel label {
+    min-height: 48px;
+  }
+
+  /* Hover-Effekte auf Touch-Geräten ausschalten –
+     sie lösen auf Mobilgeräten beim ersten Tap aus
+     und sehen dann komisch aus */
+  .place:hover,
+  .circle:hover,
+  .float button:hover,
+  .filterBtn:hover,
+  .filterChip:hover,
+  .actions a:hover,
+  .actions button:hover,
+  .legalClose:hover,
+  .layerPanel label:hover,
+  .close:hover {
+    background: revert;
+    border-color: revert;
+    color: revert;
   }
 }
 
-/* Präferenzen für reduzierte Bewegung respektieren */
+/* ── Reduzierte Bewegung respektieren ────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -63,48 +83,93 @@ select:focus-visible,
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 
-/* Hochkontrast-Modus Unterstützung */
+/* ── Hochkontrast-Modus ──────────────────────────────────────── */
 @media (prefers-contrast: high) {
   :root {
-    --ink: #000000;
+    --ink:   #000000;
     --paper: #ffffff;
-    --line: #000000;
+    --muted: #444444;
+    --line:  #000000;
   }
-  
+
   button,
   a,
-  .filterChip {
+  .filterChip,
+  .actions a,
+  .actions button {
     border-width: 2px;
+  }
+
+  .place {
+    border-bottom-width: 2px;
   }
 }
 
-/* Dark Mode Unterstützung */
+/* ── Dark Mode ───────────────────────────────────────────────── */
 @media (prefers-color-scheme: dark) {
   :root {
-    --paper: #1d2822;
+    --paper:   #1d2822;
     --paper-2: #263630;
-    --ink: #f4f1ea;
-    --muted: #9ca59e;
-    --line: #3a4740;
-    --white: #0f1311;
+    --ink:     #f4f1ea;
+    --muted:   #9ca59e;
+    --line:    #3a4740;
+    --white:   #111814;
+    --navy:    #7aadcc;  /* heller im Dunkeln – bleibt erkennbar als Link-Farbe */
+    --rust:    #c4795d;
   }
-  
+
   body {
-    background: #0f1311;
+    background: #0d1210;
   }
-  
+
+  /* Glasmorphismus-Elemente: im Dark Mode brauchen sie
+     einen sichtbaren dunklen Background, kein Blur auf Dunkel */
   .title,
-  .circle,
-  .close {
-    background: rgba(29, 40, 34, 0.94);
+  .close,
+  .circle {
+    background: rgba(20, 30, 24, 0.93);
+    border-color: rgba(255, 254, 250, 0.1);
     color: var(--ink);
   }
-  
+
+  .float button,
+  .legalClose {
+    background: rgba(20, 30, 24, 0.92);
+    border-color: rgba(255, 254, 250, 0.1);
+    color: var(--ink);
+  }
+
+  .nav {
+    background: #111814;
+  }
+
+  .filterChip {
+    background: var(--paper-2);
+    border-color: var(--line);
+  }
+
+  .filterChip.active {
+    background: var(--ink);
+    color: var(--white);
+  }
+
   .appError {
     background: var(--paper);
     color: var(--ink);
+    border-color: var(--rust);
+  }
+
+  .search::placeholder {
+    color: var(--muted);
+  }
+
+  /* Thumbnail-Placeholder im Dark Mode */
+  .thumb.ph,
+  .heroimg {
+    background: #2a3530;
   }
 }
