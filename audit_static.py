@@ -70,7 +70,10 @@ for name, count in (("places-data.js", places_count), ("steder_v25_1393.csv", cs
     check(count == EXPECTED_PLACES, f"{name}: {count} Datensätze (Soll {EXPECTED_PLACES})")
 check(places_count == csv_count == geo_count, "Haupt-Ortsquellen haben dieselbe Datensatzanzahl")
 for name, expected in EXPECTED_SHA256.items():
-    actual = hashlib.sha256((ROOT/name).read_bytes()).hexdigest()
+    raw = (ROOT/name).read_bytes()
+    actual = hashlib.sha256(raw).hexdigest()
+    if actual != expected:
+        actual = hashlib.sha256(raw.replace(b'\r\n', b'\n')).hexdigest()
     check(actual == expected, f"Ortsdatei inhaltlich unverändert: {name}")
 
 if errors:

@@ -129,8 +129,8 @@
     markerMap.clear();
     const visible = filteredPlaces();
     visible.forEach(p => {
-      if (!p.lat || !p.lng) return;
-      const m = L.marker([p.lat, p.lng], { icon: makeIcon(p) });
+      if (!p.lat || !p.lon) return;
+      const m = L.marker([p.lat, p.lon], { icon: makeIcon(p) });
       m.bindPopup(`<b>${p.name}</b><br><small>${p.region || ''}</small>`);
       m.on('click', () => openDetail(p));
       cluster.addLayer(m);
@@ -363,8 +363,8 @@
           <button id="detailRoute" class="${inRoute ? 'active' : ''}">
             ${inRoute ? '✓ In Route' : '⤷ Route'}
           </button>
-          ${p.lat && p.lng
-            ? `<a class="primary" href="https://maps.google.com/?q=${p.lat},${p.lng}" target="_blank" rel="noopener">Maps</a>`
+          ${p.lat && p.lon
+            ? `<a class="primary" href="https://maps.google.com/?q=${p.lat},${p.lon}" target="_blank" rel="noopener">Maps</a>`
             : ''}
           ${p.wiki
             ? `<a href="${p.wiki}" target="_blank" rel="noopener">Wikipedia</a>`
@@ -393,7 +393,7 @@
     });
 
     openModal(detail);
-    if (p.lat && p.lng) map.setView([p.lat, p.lng], Math.max(map.getZoom(), 11));
+    if (p.lat && p.lon) map.setView([p.lat, p.lon], Math.max(map.getZoom(), 11));
   }
 
   /* ── Ebenen-Panel ────────────────────────────────────── */
@@ -411,9 +411,9 @@
     types.forEach(type => {
       const pts = CAMPER_POINTS.filter(p => p.type === type);
       const lg = L.layerGroup(pts
-        .filter(p => p.lat != null && p.lng != null && isFinite(p.lat) && isFinite(p.lng))
+        .filter(p => p.lat != null && p.lon != null && isFinite(p.lat) && isFinite(p.lon))
         .map(p => {
-          const m = L.circleMarker([p.lat, p.lng], {
+          const m = L.circleMarker([p.lat, p.lon], {
             radius: 6,
             fillColor: '#2E5266',
             color: '#fff',
