@@ -1,0 +1,422 @@
+import { useMemo, useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { ArrowDown, ArrowUp, Car, ChevronDown, Footprints, Heart, Info, List, MapPin, Route as RouteIcon, Search, Sparkles, Star, Trash2, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CATEGORY_LABEL, PLACES, type Category, type Place } from "@/data/places";
+import { useAppStore } from "@/lib/store";
+import { cn } from "@/lib/utils";
+import { colorFor } from "@/lib/category-color";
+import PlaceThumb from "@/components/PlaceThumb";
+import { estimateTimes, formatDuration, formatKm, optimizeOrder, totalDistance, type Stop } from "@/lib/route-optimize";
+
+
+const CATEGORIES = Object.keys(CATEGORY_LABEL) as Category[];
+const COLLAPSED_CATEGORY_COUNT = 8;
+
+export function AppSidebar({ results, onNavigate }: { results: Place[]; onNavigate?: () => void }) {
+  const [showAllCats, setShowAllCats] = useState(false);
+  const { query, setQuery, categories, toggleCategory, clearCategories } = useAppStore();
+  const favorites = useAppStore((s) => s.favorites);
+  const route = useAppStore((s) => s.route);
+  const focus = useAppStore((s) => s.focus);
+  const toggleFav = useAppStore((s) => s.toggleFavorite);
+  const removeFromRoute = useAppStore((s) => s.removeFromRoute);
+  const clearRoute = useAppStore((s) => s.clearRoute);
+  const addToRoute = useAppStore((s) => s.addToRoute);
+  const setRoute = useAppStore((s) => s.setRoute);
+  const moveRoute = useAppStore((s) => s.moveRoute);
+
+  const byId = useMemo(() => {
+    const m = new Map<string, Place>();
+    PLACES.forEach((p) => m.set(p.id, p));
+    return m;
+  }, []);
+
+  return (
+    <aside className="flex h-full w-full flex-col bg-sidebar text-sidebar-foreground">
+      <div className="border-b border-sidebar-border p-4">
+        <div className="mb-3 flex items-center gap-2">
+          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground">
+            <MapPin className="h-5 w-5" />
+          </div>
+          <div className="min-w-0">
+            <div className="font-display truncate text-base font-semibold leading-tight">Steder i Norge</div>
+            <div className="text-muted-foreground truncate text-xs">Orte, Natur & Camper</div>
+          </div>
+        </div>
+        <div className="relative">
+          <Search className="text-muted-foreground pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Suche Orte, Region, Kategorie…"
+            className="pl-9"
+          />
+          {query && (
+            <button
+              onClick={() => setQuery("")}
+              className="text-muted-foreground hover:text-foreground absolute right-2 top-1/2 -translate-y-1/2 rounded p-1"
+              aria-label="Suche leeren"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+        <div className="mt-3">
+          <div className="flex flex-wrap gap-1.5">
+            {(showAllCats ? CATEGORIES : CATEGORIES.slice(0, COLLAPSED_CATEGORY_COUNT)).map((c) => {
+              const active = categories.includes(c);
+              return (
+                <button
+                  key={c}
+                  onClick={() => toggleCategory(c)}
+                  className={cn(
+                    "focus-visible:ring-ring rounded-full border px-2.5 py-1 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2",
+                    active
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-sidebar-border bg-sidebar hover:bg-sidebar-accent",
+                  )}
+                >
+                  {CATEGORY_LABEL[c]}
+                </button>
+              );
+            })}
+          </div>
+          <div className="mt-2 flex items-center justify-between gap-2">
+            <button
+              onClick={() => setShowAllCats((v) => !v)}
+              className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-xs"
+            >
+              <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", showAllCats && "rotate-180")} />
+              {showAllCats ? "weniger" : `+${CATEGORIES.length - COLLAPSED_CATEGORY_COUNT} weitere`}
+            </button>
+            {categories.length > 0 && (
+              <button
+                onClick={clearCategories}
+                className="text-muted-foreground hover:text-foreground text-xs underline"
+              >
+                zurücksetzen ({categories.length})
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <Tabs defaultValue="results" className="flex min-h-0 flex-1 flex-col">
+        <TabsList className="mx-3 mt-3 grid grid-cols-3">
+          <TabsTrigger value="results" className="min-w-0 gap-1.5">
+            <List className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">{results.length}</span>
+          </TabsTrigger>
+          <TabsTrigger value="favorites" className="min-w-0 gap-1.5">
+            <Heart className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">{favorites.length}</span>
+          </TabsTrigger>
+          <TabsTrigger value="route" className="min-w-0 gap-1.5">
+            <RouteIcon className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">{route.length}</span>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="results" className="mt-0 min-h-0 flex-1">
+          <ScrollArea className="h-full">
+            <ul className="divide-sidebar-border divide-y">
+              {results.length === 0 && (
+                <li className="text-muted-foreground p-6 text-center text-sm">
+                  Keine Treffer. Filter oder Suche anpassen.
+                </li>
+              )}
+              {results.map((p) => (
+                <PlaceRow
+                  key={p.id}
+                  place={p}
+                  isFav={favorites.includes(p.id)}
+                  inRoute={route.includes(p.id)}
+                  onSelect={() => focus(p.id)}
+                  onFav={() => toggleFav(p.id)}
+                  onAddRoute={() => addToRoute(p.id)}
+                  onNavigate={onNavigate}
+                />
+              ))}
+            </ul>
+          </ScrollArea>
+        </TabsContent>
+
+        <TabsContent value="favorites" className="mt-0 min-h-0 flex-1">
+          <ScrollArea className="h-full">
+            <ul className="divide-sidebar-border divide-y">
+              {favorites.length === 0 && (
+                <li className="text-muted-foreground p-6 text-center text-sm">
+                  Noch keine Favoriten.
+                </li>
+              )}
+              {favorites.map((id) => {
+                const p = byId.get(id);
+                if (!p) return null;
+                return (
+                  <PlaceRow
+                    key={id}
+                    place={p}
+                    isFav
+                    inRoute={route.includes(id)}
+                    onSelect={() => focus(id)}
+                    onFav={() => toggleFav(id)}
+                    onAddRoute={() => addToRoute(id)}
+                    onNavigate={onNavigate}
+                  />
+                );
+              })}
+            </ul>
+          </ScrollArea>
+        </TabsContent>
+
+        <TabsContent value="route" className="mt-0 flex min-h-0 flex-1 flex-col">
+          <RoutePanel
+            route={route}
+            byId={byId}
+            focus={focus}
+            removeFromRoute={removeFromRoute}
+            clearRoute={clearRoute}
+            setRoute={setRoute}
+            moveRoute={moveRoute}
+          />
+        </TabsContent>
+      </Tabs>
+    </aside>
+  );
+}
+
+function PlaceRow({
+  place,
+  isFav,
+  inRoute,
+  onSelect,
+  onFav,
+  onAddRoute,
+  onNavigate,
+}: {
+  place: Place;
+  isFav: boolean;
+  inRoute: boolean;
+  onSelect: () => void;
+  onFav: () => void;
+  onAddRoute: () => void;
+  onNavigate?: () => void;
+}) {
+  return (
+    <li className="hover:bg-sidebar-accent group grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-3 p-3 transition-colors">
+      <button
+        className="focus-visible:ring-ring rounded-md focus-visible:outline-none focus-visible:ring-2"
+        onClick={onSelect}
+        aria-label={`${place.name} auf Karte anzeigen`}
+      >
+        <PlaceThumb name={place.name} aliases={place.aliases} color={colorFor(place.category)} size={56} />
+      </button>
+      <button className="min-w-0 text-left focus-visible:outline-none" onClick={onSelect}>
+        <div className="flex items-center gap-2">
+          <div className="truncate text-sm font-medium">{place.name}</div>
+          {place.quality === 3 && <Star className="text-accent h-3.5 w-3.5 shrink-0 fill-current" />}
+        </div>
+        <div className="text-muted-foreground mt-0.5 truncate text-xs">
+          {CATEGORY_LABEL[place.category]} · {place.region}
+        </div>
+        <div className="text-muted-foreground/80 mt-1 line-clamp-2 text-xs">{place.description}</div>
+      </button>
+      <div className="flex shrink-0 flex-col gap-1">
+        <Button
+          size="icon"
+          variant={isFav ? "default" : "ghost"}
+          onClick={onFav}
+          aria-label={isFav ? "Favorit entfernen" : "Als Favorit speichern"}
+          className="h-8 w-8"
+        >
+          <Heart className={cn("h-4 w-4", isFav && "fill-current")} />
+        </Button>
+        <Button
+          size="icon"
+          variant={inRoute ? "default" : "ghost"}
+          onClick={onAddRoute}
+          aria-label={inRoute ? "Bereits in Route" : "Zur Route hinzufügen"}
+          className="h-8 w-8"
+          disabled={inRoute}
+        >
+          <RouteIcon className="h-4 w-4" />
+        </Button>
+        <Button asChild size="icon" variant="ghost" aria-label="Details ansehen" className="h-8 w-8">
+          <Link to="/place/$id" params={{ id: place.id }} onClick={onNavigate}>
+            <Info className="h-4 w-4" />
+          </Link>
+        </Button>
+      </div>
+    </li>
+
+  );
+}
+
+function RoutePanel({
+  route,
+  byId,
+  focus,
+  removeFromRoute,
+  clearRoute,
+  setRoute,
+  moveRoute,
+}: {
+  route: string[];
+  byId: Map<string, Place>;
+  focus: (id: string | null) => void;
+  removeFromRoute: (id: string) => void;
+  clearRoute: () => void;
+  setRoute: (ids: string[]) => void;
+  moveRoute: (from: number, to: number) => void;
+}) {
+  const stops: Stop[] = useMemo(
+    () =>
+      route
+        .map((id) => byId.get(id))
+        .filter((p): p is Place => !!p)
+        .map((p) => ({ id: p.id, lat: p.lat, lng: p.lng })),
+    [route, byId],
+  );
+  const distKm = useMemo(() => totalDistance(stops), [stops]);
+  const times = useMemo(() => estimateTimes(distKm), [distKm]);
+
+  const optimize = () => {
+    if (stops.length < 3) return;
+    const opt = optimizeOrder(stops);
+    setRoute(opt.map((s) => s.id));
+  };
+  const reverse = () => setRoute(route.slice().reverse());
+
+  if (route.length === 0) {
+    return (
+      <div className="text-muted-foreground p-6 text-center text-sm">
+        Füge Orte zur Route hinzu, um Reihenfolge und Fahrzeit zu berechnen.
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="border-sidebar-border grid grid-cols-3 gap-2 border-b p-3">
+        <Stat label="Strecke" value={formatKm(times.roadKm)} />
+        <Stat
+          label="Auto"
+          value={formatDuration(times.driveMinutes)}
+          icon={<Car className="h-3 w-3" />}
+        />
+        <Stat
+          label="zu Fuß"
+          value={formatDuration(times.walkMinutes)}
+          icon={<Footprints className="h-3 w-3" />}
+        />
+      </div>
+      <div className="border-sidebar-border flex gap-2 border-b p-3">
+        <Button
+          size="sm"
+          className="flex-1"
+          onClick={optimize}
+          disabled={stops.length < 3}
+          title={stops.length < 3 ? "Mindestens 3 Stopps nötig" : "Reihenfolge optimieren"}
+        >
+          <Sparkles className="mr-1.5 h-3.5 w-3.5" /> Optimieren
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={reverse}
+          disabled={route.length < 2}
+          title="Reihenfolge umkehren"
+        >
+          <ArrowUp className="h-3.5 w-3.5" />
+          <ArrowDown className="-ml-1 h-3.5 w-3.5" />
+        </Button>
+      </div>
+      <ScrollArea className="flex-1">
+        <ol className="divide-sidebar-border divide-y">
+          {route.map((id, i) => {
+            const p = byId.get(id);
+            if (!p) return null;
+            const leg = i > 0 ? distKm && haversineIds(byId, route[i - 1], id) : 0;
+            return (
+              <li key={id} className="flex items-start gap-2 p-3">
+                <div className="flex flex-col items-center gap-1">
+                  <div className="bg-primary text-primary-foreground grid h-6 w-6 shrink-0 place-items-center rounded-full text-xs font-semibold">
+                    {i + 1}
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <button
+                      onClick={() => moveRoute(i, i - 1)}
+                      disabled={i === 0}
+                      className="text-muted-foreground hover:text-foreground disabled:opacity-30"
+                      aria-label="Nach oben"
+                    >
+                      <ArrowUp className="h-3 w-3" />
+                    </button>
+                    <button
+                      onClick={() => moveRoute(i, i + 1)}
+                      disabled={i === route.length - 1}
+                      className="text-muted-foreground hover:text-foreground disabled:opacity-30"
+                      aria-label="Nach unten"
+                    >
+                      <ArrowDown className="h-3 w-3" />
+                    </button>
+                  </div>
+                </div>
+                <button className="min-w-0 flex-1 text-left" onClick={() => focus(id)}>
+                  <div className="truncate text-sm font-medium">{p.name}</div>
+                  <div className="text-muted-foreground truncate text-xs">
+                    {CATEGORY_LABEL[p.category]} · {p.region}
+                  </div>
+                  {i > 0 && (
+                    <div className="text-muted-foreground/80 mt-1 text-[11px]">
+                      + {formatKm(leg * 1.3)} von Stopp {i}
+                    </div>
+                  )}
+                </button>
+                <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => removeFromRoute(id)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </li>
+            );
+          })}
+        </ol>
+      </ScrollArea>
+      <div className="border-sidebar-border border-t p-3">
+        <Button variant="outline" className="w-full" onClick={clearRoute}>
+          <Trash2 className="mr-2 h-4 w-4" /> Route leeren
+        </Button>
+      </div>
+    </>
+  );
+}
+
+function haversineIds(byId: Map<string, Place>, a: string, b: string): number {
+  const pa = byId.get(a);
+  const pb = byId.get(b);
+  if (!pa || !pb) return 0;
+  const R = 6371;
+  const toRad = (v: number) => (v * Math.PI) / 180;
+  const dLat = toRad(pb.lat - pa.lat);
+  const dLng = toRad(pb.lng - pa.lng);
+  const s =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(pa.lat)) * Math.cos(toRad(pb.lat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(s));
+}
+
+function Stat({ label, value, icon }: { label: string; value: string; icon?: React.ReactNode }) {
+  return (
+    <div className="rounded-md border border-sidebar-border bg-sidebar-accent/40 px-2 py-1.5">
+      <div className="text-muted-foreground flex items-center gap-1 text-[10px] uppercase tracking-wide">
+        {icon}
+        {label}
+      </div>
+      <div className="mt-0.5 truncate text-sm font-semibold">{value}</div>
+    </div>
+  );
+}
+
